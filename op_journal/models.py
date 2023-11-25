@@ -4,6 +4,21 @@ from staff.models import CustomUser
 from substation.models import Substation
 
 
+class СommentOPJ(models.Model):
+    text = models.TextField(verbose_name='Комментарий')
+    real_date = models.DateTimeField(default=timezone.now,
+                                     verbose_name='Время создания комментария',)
+    user = models.ForeignKey(CustomUser,
+                             on_delete=models.SET_DEFAULT,
+                             default='Пользователь удален',
+                             verbose_name='Комментарий сделал',
+                             related_name='commentator')
+    
+    class Meta:
+        verbose_name = 'Комментарий к ОЖ'
+        verbose_name_plural = 'Комментарии к ОЖ'
+
+
 class MainPageOPJournal(models.Model):
     text = models.TextField(verbose_name='Содержание')
     real_date = models.DateTimeField(default=timezone.now,
@@ -19,11 +34,12 @@ class MainPageOPJournal(models.Model):
                              on_delete=models.CASCADE,
                              verbose_name='Запись сделал',
                              related_name='user')
-    comment = models.TextField(
-        verbose_name='Комментарий',
-        default='',
-        blank=True
-    )
+    comment = models.ForeignKey(СommentOPJ,
+                                verbose_name='Комментарий',
+                                on_delete=models.PROTECT,
+                                blank=True,
+                                null=True,
+                                related_name='comment')
     entry_is_valid = models.BooleanField(verbose_name='Запись верна',
                                          default=True)
     special_regime_introduced = models.BooleanField(verbose_name='Ввод особого режима (ОРР, РПГ, РВР)',

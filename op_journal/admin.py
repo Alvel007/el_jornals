@@ -1,8 +1,16 @@
 from django.contrib import admin
 from django.utils import timezone
-from .models import MainPageOPJournal, AutocompleteOption
+from .models import MainPageOPJournal, AutocompleteOption, СommentOPJ
 
 from el_journals.settings import NUMBER_ENTRIES_OP_LOG_PAGE
+
+class СommentOPJAdmin(admin.ModelAdmin):
+    list_display = ('id', 'text', 'real_date', 'user')
+    list_display_links = ('id', 'text', 'real_date', 'user')
+    search_fields = ('text', 'user__last_name')
+    list_filter = ('user',)
+    list_per_page = NUMBER_ENTRIES_OP_LOG_PAGE
+
 
 class MainPageOPJournalAdmin(admin.ModelAdmin):
     list_display = ('id', 'short_text', 'real_date_format', 'pub_date_format', 'substation', 'user', 'comment', 'entry_is_valid', 'special_regime_introduced', 'emergency_event', 'short_circuit')
@@ -34,3 +42,4 @@ class AutocompleteOptionAdmin(admin.ModelAdmin):
 
 admin.site.register(MainPageOPJournal, MainPageOPJournalAdmin)
 admin.site.register(AutocompleteOption, AutocompleteOptionAdmin)
+admin.site.register(СommentOPJ, СommentOPJAdmin)

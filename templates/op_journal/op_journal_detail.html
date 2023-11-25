@@ -38,7 +38,7 @@
       {% if op_journal_entry.comment %}
       <tr>
         <th scope="row">Комментарий АТП:</th>
-        <td>{{ op_journal_entry.comment }}</td>
+        <td>{{ op_journal_entry.comment.text }}<br>{{ op_journal_entry.comment.user.position }} {{ op_journal_entry.comment.user }} </td>
       </tr>
       {% endif %}
       <tr>

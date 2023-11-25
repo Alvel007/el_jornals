@@ -134,7 +134,11 @@
             {{ post.text }}<br>{{ post.user.position }} {{ post.user }}
             {% endif %}
           </td>
-          <td>{{ post.comment }}</td>
+          {% if post.comment == None  %}
+          <td></td>
+          {% else %}
+          <td>{{ post.comment.text }}<br> {{ post.comment.user.position }} {{ post.comment.user }}</td>
+          {% endif %}
         </tr>
         {% endfor %}
       </tbody>

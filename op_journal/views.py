@@ -53,7 +53,7 @@ class OpJournalView(ListView, FormView):
 
     def get_queryset(self):
         substation_slug = self.kwargs.get('substation_slug')
-        queryset = MainPageOPJournal.objects.filter(substation__slug=substation_slug).order_by('-pub_date')
+        queryset = MainPageOPJournal.objects.filter(substation__slug=substation_slug).order_by('-pub_date', '-id')
         return queryset
 
     def get_context_data(self, **kwargs):

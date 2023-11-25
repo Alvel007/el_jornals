@@ -61,17 +61,19 @@
         </div>
       {% endif %}
     </div>
+
     <div class="mb-3">
-      <label for="id_pub_date" class="form-label">Время выполнения действия:</label>
-      {{ form.pub_date }}
-      {% if form.pub_date.errors %}
+        <label for="id_pub_date" class="form-label">Время выполнения действия:</label>
+        {{ form.pub_date }}
+        {% if form.pub_date.errors %}
         <div class="text-danger">
-          {% for error in form.pub_date.errors %}
+            {% for error in form.pub_date.errors %}
             <span>{{ error }}</span>
-          {% endfor %}
+            {% endfor %}
         </div>
-      {% endif %}
+        {% endif %}
     </div>
+    
     <div class="mb-3">
       <label for="id_special_regime_introduced" class="form-label">Ввод особого режима работы, Да/Нет:</label>
       {{ form.special_regime_introduced }}
@@ -109,6 +111,7 @@
     <button type="submit" class="btn btn-primary">Добавить запись</button>
   </form>
 </div>
+
 
 <div class="table-responsive">
   <table class="table table-bordered border-primary table-hover">

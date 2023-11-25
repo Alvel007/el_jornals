@@ -3,3 +3,4 @@ django-csvimport
 unidecode
 django-autocomplete-light
 django-widget-tweaks
+django-datetime-widget

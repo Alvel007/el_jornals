@@ -1,0 +1,13 @@
+<div class="row">
+    <div class="col-10"></div>
+    <div id="notification" class="col-2 alert alert-primary rounded" role="alert">
+        Это уведомление со <a href="#" class="alert-link">ссылкой</a>.
+    </div>
+</div>
+
+<script>
+    setTimeout(function() {
+        var notification = document.getElementById('notification');
+        notification.style.display = 'none';
+    }, 3000);
+</script>

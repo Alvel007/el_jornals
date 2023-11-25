@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block body_site_page %}
+<div class="container-fluid">
+  {% if substation_slug %}
+    <h1 class="text-center">{{ head }}</h1>
+  {% else %}
+    <h1 class="text-center"> Инструкция по использования электронного оперативного журнала</h1>
+  {% endif %}
+  <div class ="row">
+      <div class="col-12" style="background-color: #ffffff;">
+        {% if substation_slug %}
+          {% include 'op_journal/op_journal.html' %}
+        {% else %}
+          {% include 'op_journal/manual.html' %}
+        {% endif %}
+      </div>
+      {% if show_notification %}
+      {% include 'includes/notification.html' %}
+      {% endif %}
+  </div>
+</div>
+{% endblock body_site_page %}

@@ -1,0 +1,71 @@
+<table class="table table-bordered border-primary table-hover">
+    <style>
+        th:nth-child(1) {
+          width: 7%;
+        }
+        th:nth-child(2) {
+          width: 8%;
+        }
+        th:nth-child(3) {
+          width: 18%;
+        }
+        th:nth-child(4) {
+          width: 17;
+        }
+        th:nth-child(5) {
+          width: 10%;
+        }
+        th:nth-child(6) {
+          width: 20%;
+        }
+        th:nth-child(7) {
+          width: 20%;
+        }
+      </style>
+
+    <thead>
+      <tr>
+        <th class="text-center" scope="col">Таб. №</th>
+        <th class="text-center" scope="col">Логин</th>
+        <th class="text-center" scope="col">Фамилия И.О.</th>
+        <th class="text-center" scope="col">Должность</th>
+        <th class="text-center" scope="col">Группа по ЭБ</th>
+        <th class="text-center" scope="col">Оперативные права по следующим ПС</th>
+        <th class="text-center" scope="col">Права АТП по следующим ПС</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in model_user_data %}
+      <tr>
+        <td>{{ user.employee_id }}</tb>
+          <td>{{ user.username }}</tb>
+        <td>{{ user.last_name }} {{user.first_name}} {{user.middle_name}}</td>
+        <td class="text-center">{{ user.position }}</td>
+        <td class="text-center"><h6 class="text-center"></h6>{{ user.electrical_safety_group }}</h6></td>
+        <td class="text-center">{% for op  in user.operational_staff.all %}
+            {{ op.name }}</br>
+            {% endfor %}</td>
+        <td class="text-center">{% for atp  in user.administrative_staff.all %}
+            {{ atp.name }}</br>
+            {% endfor %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+</table>
+<div class="row justify-content-md-center">
+    {% if model_user_data.paginator.num_pages > 1 %}
+    <div class="col-2 my-auto text-center-md">
+      <nav aria-label="...">
+        <ul class="pagination">
+          {% if model_user_data.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ model_user_data.previous_page_number }}">Предыдущая</a></li>
+          {% endif %}
+          <li class="page-item"><a class="page-link">Стр. {{ model_user_data.number }}</a></li>
+          {% if model_user_data.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ model_user_data.next_page_number }}">Следующая</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+  </div>

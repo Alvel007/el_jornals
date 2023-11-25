@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block body_site_page %}
+<div class="container d-flex justify-content-center align-items-start" style="height: 100vh; margin-top: 50px;">
+    <div class="rounded p-4" style="width: 500px; background-color: #ddf0ff;">
+        <h2 class="text-center mb-4">Авторизация</h2>
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <strong>Ошибка!</strong> Введены неверные учетные данные.
+            </div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="exampleInputEmail1" class="form-label">Логин</label>
+                {{ form.username }}
+                <div id="emailHelp" class="form-text">Пожалуйста, введите Ваш логин.</div>
+            </div>
+            <div class="form-group">
+                <label for="exampleInputPassword1" class="form-label">Пароль</label>
+                {{ form.password }}
+                <div id="passwordHelp" class="form-text">Пожалуйста, введите Ваш пароль.</div>
+            </div>
+            <button type="submit" class="btn btn-primary d-block w-100">Войти</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

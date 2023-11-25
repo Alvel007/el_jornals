@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block body_site_page %}
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+<style>
+    form {
+        margin: 0 auto;
+        width: 80%;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 35px;
+    }
+
+    #id_text {
+        width: 100%;
+        height: 75px;
+    }
+</style>
+<script type="text/javascript">
+$(function() {
+    var autocompleteUrl = $('#id_text').data('autocomplete-url'); // Получаем URL из данных поля
+
+    $('#id_text').autocomplete({
+        source: function(request, response) {
+            $.ajax({
+                url: autocompleteUrl,
+                data: {
+                    term: request.term
+                },
+                dataType: 'json',
+                success: function(data) {
+                    response(data);
+                }
+            });
+        },
+        minLength: 2,  // Минимальная длина строки для начала поиска
+        select: function(event, ui) {
+            $('#id_text').val(ui.item.value);
+            return false;
+        }
+    });
+});
+</script>
+
+<form method="POST" action="{% url 'add_op_journal_entry' %}">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label id="autocomplete-text" for="id_text" class="form-label">Содержание:</label>
+        {{ form.text }}
+        {% if form.text.errors %}
+        <div class="text-danger">
+            {% for error in form.text.errors %}
+            <span>{{ error }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    <div class="mb-3">
+      <label for="id_pub_date" class="form-label">Время выполнения действия:</label>
+      {{ form.pub_date }}
+      {% if form.pub_date.errors %}
+        <div class="text-danger">
+          {% for error in form.pub_date.errors %}
+            <span>{{ error }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    <div class="mb-3">
+      <label for="id_substation" class="form-label">Подстанция:</label>
+      {{ form.substation }}
+      {% if form.substation.errors %}
+        <div class="text-danger">
+          {% for error in form.substation.errors %}
+            <span>{{ error }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    <button type="submit" class="btn btn-primary">Добавить запись</button>
+  </form>
+{% endblock body_site_page %}

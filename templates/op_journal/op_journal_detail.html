@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block body_site_page %}
+
+<div class="container">
+  <h2>Запись {{ op_journal_entry.id }} внес {{ op_journal_entry.user }} в оперативный журнал {{ op_journal_entry.substation }}</h2>
+  <table class="table table-bordered border-primary" style="width: 70%;">
+    <colgroup>
+      <col style="width: 25%;">
+      <col style="width: 75%;">
+    </colgroup>
+    <thead>
+      <tr>
+        <th scope="col">Форма</th>
+        <th scope="col">Содержание</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">Номер записи:</th>
+        <td>{{ op_journal_entry.id }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Запись внес:</th>
+        <td>{{ op_journal_entry.user }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Объект:</th>
+        <td>{{ op_journal_entry.substation }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Время выполнения:</th>
+        <td>{{ op_journal_entry.pub_date }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Содержание:</th>
+        <td>{{ op_journal_entry.text }}</td>
+      </tr>
+      {% if op_journal_entry.comment %}
+      <tr>
+        <th scope="row">Комментарий АТП:</th>
+        <td>{{ op_journal_entry.comment }}</td>
+      </tr>
+      {% endif %}
+      <tr>
+        <th scope="row">Состояние записи:</th>
+        {% if op_journal_entry.entry_is_valid == True %}
+        <td class="text-success">Верна</td>
+        {% else %}
+        <td class="text-danger">Ошибочна</td>
+        {% endif %}
+      </tr>
+      {% if op_journal_entry.special_regime_introduced %}
+      <tr>
+        <th scope="row">Введен особый режим работы:</th>
+        <td> Да </td>
+      </tr>
+      {% endif %}
+      {% if op_journal_entry.emergency_event %}
+      <tr>
+        <th scope="row">Фиксация аварийного откллючения, пожара или несчастного случая:</th>
+        <td> Да </td>
+      </tr>
+      {% endif %}
+      {% if op_journal_entry.short_circuit %}
+      <tr>
+        <th scope="row">Фиксация короткого замыкания на СШ 6-35 кВ:</th>
+        <td> Да </td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock body_site_page %}

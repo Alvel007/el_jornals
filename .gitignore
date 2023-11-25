@@ -133,3 +133,4 @@ dmypy.json
 
 media/
 collected_static/
+static/

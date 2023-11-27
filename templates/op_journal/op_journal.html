@@ -135,13 +135,15 @@
         </td>
         <td>
           {% if post.comment %}
-          {{ post.comment.text }}<br>{{ post.comment.user.position }} {{ post.comment.user }}
+            <div style="word-wrap: break-word;">
+              {{ post.comment.text }}<br>{{ post.comment.user.position }} {{ post.comment.user }}
+            </div>
           {% else %}
-          <form id="comment-form-{{ post.pk }}" method="post" action="{% url 'add_comment' post.pk %}">
-            {% csrf_token %}
-            {{ comment_form.text }}
-            <button type="submit" style="display: none;">Добавить комментарий</button>
-          </form>
+            <form id="comment-form-{{ post.pk }}" method="post" action="{% url 'add_comment' post.pk %}">
+              {% csrf_token %}
+              {{ comment_form.text }}
+              <button type="submit" style="display: none;">Добавить комментарий</button>
+            </form>
           {% endif %}
         </td>
       </tr>

@@ -4,11 +4,11 @@ from django.views.generic import ListView, FormView, TemplateView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404, HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404, HttpResponseRedirect, redirect
 
 from op_journal.models import MainPageOPJournal, AutocompleteOption
 from el_journals.settings import NUMBER_ENTRIES_OP_LOG_PAGE
-from .forms import MainPageOPJournalForm, OPJournalForm
+from .forms import MainPageOPJournalForm, OPJournalForm, CommentOPJForm
 from substation.models import Substation
 
 @login_required(login_url='/login/')
@@ -45,6 +45,7 @@ class OpJournalView(ListView, FormView):
     paginate_by = NUMBER_ENTRIES_OP_LOG_PAGE
     extra_context = {'title': 'Инструкция по ведению электронного оперативного журнала'}
     form_class = MainPageOPJournalForm
+    comment_form_class = CommentOPJForm
     
     
     def post(self, request, *args, **kwargs):
@@ -74,6 +75,8 @@ class OpJournalView(ListView, FormView):
         else:
             form = MainPageOPJournalForm(request=self.request)
         context['form'] = form
+        comment_form = self.comment_form_class()
+        context['comment_form'] = comment_form
         return context
 
     def form_invalid(self, form):
@@ -87,14 +90,27 @@ class OpJournalView(ListView, FormView):
         return self.render_to_response(context)
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
+        user = self.request.user
+        form.instance.user = user
         op_journal = form.save()
         return HttpResponseRedirect(reverse('sub_op_journal', args=[form.instance.substation.slug]))
 
 def autocomplete_view(request, substation_slug):
     substation = get_object_or_404(Substation, slug=substation_slug)
-    form = MainPageOPJournalForm(substation_slug=substation_slug)
     query = request.GET.get('term', '')
     options = AutocompleteOption.objects.filter(substation=substation, text__icontains=query)
     results = [option.text for option in options]
     return JsonResponse(results, safe=False)
+
+def add_comment(request, post_id):
+    post = get_object_or_404(MainPageOPJournal, pk=post_id)
+
+    if request.method == 'POST':
+        comment_form = CommentOPJForm(request.POST)
+        if comment_form.is_valid():
+            comment = comment_form.save(commit=False)
+            comment.user = request.user
+            comment.save()
+            post.comment = comment
+            post.save()
+    return HttpResponseRedirect(reverse('sub_op_journal', args=[post.substation.slug]))

@@ -47,6 +47,7 @@
   });
 </script>
 
+
 <div style="width: 80%; margin: 0 auto;">
   <form method="POST">
     {% csrf_token %}
@@ -112,7 +113,6 @@
   </form>
 </div>
 
-
 <div class="table-responsive">
   <table class="table table-bordered border-primary table-hover">
     <thead>
@@ -122,28 +122,43 @@
         <th class="text-center" scope="col">Визы и замечания административно-технического персонала</th>
       </tr>
     </thead>
-      <tbody>
-        {% for post in model_op_journal_data %}
-        <tr>
-          <td class="{% if post.emergency_event and not post.short_circuit %}bg-danger text-white{% elif not post.emergency_event and post.short_circuit %}bg-primary text-white{% elif post.emergency_event and post.short_circuit %}bg-danger border border-primary border-5 text-white{% endif %} text-wrap">{{ post.pub_date }}</td>
-          <td class="clickable-cell {% if post.special_regime_introduced %} border border-danger border-5 {% endif %}" data-href="{% url 'op_journal_edit' post.pk %}">
-            {% if post.entry_is_valid == False %}
-            ОШИБОЧНАЯ ЗАПИСЬ!<br><strike>{{ post.text }}<br>{{ post.user.position }} {{ post.user }}</strike>
-
-            {% else %}
-            {{ post.text }}<br>{{ post.user.position }} {{ post.user }}
-            {% endif %}
-          </td>
-          {% if post.comment == None  %}
-          <td></td>
+    <tbody>
+      {% for post in model_op_journal_data %}
+      <tr>
+        <td class="{% if post.emergency_event and not post.short_circuit %}bg-danger text-white{% elif not post.emergency_event and post.short_circuit %}bg-primary text-white{% elif post.emergency_event and post.short_circuit %}bg-danger border border-primary border-5 text-white{% endif %} text-wrap">{{ post.pub_date }}</td>
+        <td class="clickable-cell {% if post.special_regime_introduced %}border border-danger border-5{% endif %}" data-href="{% url 'op_journal_edit' post.pk %}">
+          {% if post.entry_is_valid == False %}
+          ОШИБОЧНАЯ ЗАПИСЬ!<br><strike>{{ post.text }}<br>{{ post.user.position }} {{ post.user }}</strike>
           {% else %}
-          <td>{{ post.comment.text }}<br> {{ post.comment.user.position }} {{ post.comment.user }}</td>
+          {{ post.text }}<br>{{ post.user.position }} {{ post.user }}
           {% endif %}
-        </tr>
-        {% endfor %}
-      </tbody>
+        </td>
+        <td>
+          {% if post.comment %}
+          {{ post.comment.text }}<br>{{ post.comment.user.position }} {{ post.comment.user }}
+          {% else %}
+          <form id="comment-form-{{ post.pk }}" method="post" action="{% url 'add_comment' post.pk %}">
+            {% csrf_token %}
+            {{ comment_form.text }}
+            <button type="submit" style="display: none;">Добавить комментарий</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
   </table>
 </div>
+<script>
+  document.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      let formId = event.target.closest("td").querySelector("form").id;
+      document.getElementById(formId).submit();
+    }
+  });
+</script>
+
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     var cells = document.querySelectorAll(".clickable-cell");

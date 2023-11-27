@@ -1,7 +1,7 @@
 from django import forms
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from .models import MainPageOPJournal
+from .models import MainPageOPJournal, СommentOPJ
 from django.shortcuts import get_object_or_404, render
 
 
@@ -66,3 +66,8 @@ class OPJournalForm(forms.ModelForm):
         widgets = {
             'entry_is_valid': forms.CheckboxInput(attrs={'class': 'form-check-input'})
         }
+        
+class CommentOPJForm(forms.ModelForm):
+    class Meta:
+        model = СommentOPJ
+        fields = ['text']

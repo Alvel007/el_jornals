@@ -17,6 +17,9 @@ class СommentOPJ(models.Model):
     class Meta:
         verbose_name = 'Комментарий к ОЖ'
         verbose_name_plural = 'Комментарии к ОЖ'
+        
+    def __str__(self):
+        return f'{self.real_date} {self.user} написал комментарий {self.text}.'
 
 
 class MainPageOPJournal(models.Model):
@@ -36,7 +39,7 @@ class MainPageOPJournal(models.Model):
                              related_name='user')
     comment = models.ForeignKey(СommentOPJ,
                                 verbose_name='Комментарий',
-                                on_delete=models.PROTECT,
+                                on_delete=models.SET_NULL,
                                 blank=True,
                                 null=True,
                                 related_name='comment')
@@ -48,7 +51,7 @@ class MainPageOPJournal(models.Model):
                                           default=False)
     short_circuit = models.BooleanField(verbose_name='КЗ в сети 6-35 кВ',
                                         default=False)
-    
+
 
     class Meta:
         verbose_name = 'Запись опер. журнала'

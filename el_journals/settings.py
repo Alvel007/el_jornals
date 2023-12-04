@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'wkhtmltopdf',
     'widget_tweaks',
     'staff.apps.StaffConfig',
     'op_journal.apps.OpJournalConfig',
@@ -97,6 +98,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "staff.CustomUser"
@@ -134,3 +138,9 @@ NUMBER_ENTRIES_OP_LOG_PAGE = 30
 
 # В течении какого периода допускается внесение записей в оперативный журнал задним числом (в часах)
 REVERSE_EDITING_PERIOD = 22
+
+WKHTMLTOPDF_CMD = 'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'
+
+WKHTMLTOPDF_CMD_OPTIONS = {
+ 'quiet': True,
+}

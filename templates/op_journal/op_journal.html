@@ -18,6 +18,13 @@
   #autocomplete-text {
     word-wrap: break-word;
   }
+
+  <style>
+  .mb-3 label,
+  .mb-3 input[type="checkbox"] {
+    display: inline-block;
+    vertical-align: middle;
+  }
 </style>
 
 <script type="text/javascript">
@@ -75,43 +82,69 @@
         {% endif %}
     </div>
     
-    <div class="mb-3">
-      <label for="id_special_regime_introduced" class="form-label">Ввод особого режима работы, Да/Нет:</label>
-      {{ form.special_regime_introduced }}
-      {% if form.special_regime_introduced.errors %}
-        <div class="text-danger">
-          {% for error in form.special_regime_introduced.errors %}
-            <span>{{ error }}</span>
-          {% endfor %}
-        </div>
-      {% endif %}
-    </div>
-    <div class="mb-3">
-      <label for="id_emergency_event" class="form-label">Чрезвычайное событие, Да/Нет:</label>
-      {{ form.emergency_event }}
-      {% if form.emergency_event.errors %}
-        <div class="text-danger">
-          {% for error in form.emergency_event.errors %}
-            <span>{{ error }}</span>
-          {% endfor %}
-        </div>
-      {% endif %}
-    </div>
-    <div class="mb-3">
-      <label for="id_short_circuit" class="form-label">КЗ в сети 6-35 кВ, Да/Нет:</label>
-      {{ form.short_circuit }}
-      {% if form.short_circuit.errors %}
-        <div class="text-danger">
-          {% for error in form.short_circuit.errors %}
-            <span>{{ error }}</span>
-          {% endfor %}
-        </div>
-      {% endif %}
+    <p>
+      <a class="btn btn-primary" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+        Добавить особые параметры
+      </a>
+    </p>
+    <div class="collapse" id="collapseExample">
+      <div class="card card-body">
+        <label for="id_special_regime_introduced" class="form-label">Введен особый работы:</label>
+        {{ form.special_regime_introduced }}
+        {% if form.special_regime_introduced.errors %}
+          <div class="text-danger">
+            {% for error in form.special_regime_introduced.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+        </br>
+        <label for="id_emergency_event" class="form-label">Случилось чрезвачайное событие: отключение, ЧП и т.д.:</label>
+        {{ form.emergency_event }}
+        {% if form.emergency_event.errors %}
+          <div class="text-danger">
+            {% for error in form.emergency_event.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+        </br>
+        <label for="id_short_circuit" class="form-label">Короткое замыкание в сети 6-35 кВ:</label>
+        {{ form.short_circuit }}
+        {% if form.short_circuit.errors %}
+          <div class="text-danger">
+            {% for error in form.short_circuit.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
     </div>
     {{ form.substation|attr:"id:autocomplete-input" }}
-    <button type="submit" class="btn btn-primary">Добавить запись</button>
+    <div class="d-grid gap-2">
+    <button type="submit" class="btn btn-primary" type="button">Добавить запись</button>
+    </div>
   </form>
 </div>
+
+
+<hr class="w-100">
+<div class="d-flex justify-content-center">
+  <form method="get" action="" class="search-form">
+    <div class="d-flex flex-row align-items-center">
+      <input type="text" name="query" placeholder="Поиск по тексту" class="w-50 mr-2">
+      <div style="width: 10px;"></div>
+      <input type="date" name="start_date" style="width: 180px;" class="mr-2">
+      <div style="width: 10px;"></div>
+      <input type="date" name="end_date" style="width: 180px;" class="mr-2">
+      <div style="width: 10px;"></div>
+      <button type="submit" class="btn btn-primary">Поиск</button>
+      <div style="width: 25px;"></div>
+      <button type="submit" name="reset" class="btn btn-primary ml-2">Сбросить</button>
+    </div>
+  </form>
+</div>
+<hr class="w-100">
 
 <div class="table-responsive">
   <table class="table table-bordered border-primary table-hover">
@@ -151,6 +184,14 @@
     </tbody>
   </table>
 </div>
+
+<form method="post" action="{% url 'export_records' substation_slug=substation_slug %}">
+  {% csrf_token %}
+  <input type="date" name="start_date" style="width: 180px;" class="mr-2">
+  <input type="date" name="end_date" style="width: 180px;" class="mr-2">
+  <button type="submit">Выгрузить в PDF</button>
+</form>
+
 <script>
   document.addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
@@ -162,6 +203,29 @@
 </script>
 
 <script>
+  document.addEventListener("DOMContentLoaded", function() {
+    var toggleButton = document.getElementById("special-params-toggle");
+    var specialParamsDiv = document.getElementById("special-params");
+
+    toggleButton.addEventListener("click", function() {
+      if (specialParamsDiv.style.display === "none") {
+        specialParamsDiv.style.display = "block";
+      } else {
+        specialParamsDiv.style.display = "none";
+      }
+    });
+  });
+
+  document.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      let formId = event.target.closest("td").querySelector("form").id;
+      document.getElementById(formId).submit();
+    }
+  });
+
+  var currentDate = new Date().toISOString().split('T')[0];
+  
   document.addEventListener("DOMContentLoaded", function() {
     var cells = document.querySelectorAll(".clickable-cell");
     cells.forEach(function(cell) {

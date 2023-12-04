@@ -4,3 +4,4 @@ unidecode
 django-autocomplete-light
 django-widget-tweaks
 django-datetime-widget
+xhtml2pdf

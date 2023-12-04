@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta http-equiv="Content-Type" charset="utf-8">
+    <style type="text/css">
+        @font-face { 
+            font-family: 'TimesNewRoman'; 
+            src: url('{% static "fonts/times.ttf" %}') format('truetype'); 
+        }
+        body {
+            font-family: 'TimesNewRoman', Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Оперативный журнал</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Дата и время записи</th>
+                <th>Содержание записи</th>
+                <th>Комментарий</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td style="width: 22%;">{{ record.pub_date }}</td>
+                <td style="width: 48%;">
+                    {% if record.entry_is_valid == False %}
+                    ОШИБОЧНАЯ ЗАПИСЬ!<br><strike>{{ record.text }}<br>{{ record.user.position }} {{ record.user }}</strike>
+                    {% else %}
+                    {{ record.text }}<br>{{ record.user.position }} {{ record.user }}
+                    {% endif %}
+                </td>
+                {% if record.comment == None %}
+                <td style="width: 30%;"></td>
+                {% else %}
+                <td style="width: 30%;">{{ record.comment.text }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

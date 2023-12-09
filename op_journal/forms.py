@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import FileField
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from .models import MainPageOPJournal, СommentOPJ
@@ -19,10 +20,11 @@ class MainPageOPJournalForm(forms.ModelForm):
     )
     text = forms.CharField(widget=forms.Textarea(attrs={'id': 'autocomplete-text'}))
     substation = forms.ModelChoiceField(queryset=Substation.objects.all(), widget=forms.HiddenInput())
-    
+    file = forms.FileField(label='Дополнительные материалы', required=False)
+
     class Meta:
         model = MainPageOPJournal
-        fields = ['text', 'pub_date', 'substation', 'special_regime_introduced', 'emergency_event', 'short_circuit']
+        fields = ['text', 'pub_date', 'substation', 'special_regime_introduced', 'emergency_event', 'short_circuit', 'file']
     
     def __init__(self, *args, **kwargs):
         substation_slug = kwargs.pop('substation_slug', None)
@@ -55,8 +57,10 @@ class MainPageOPJournalForm(forms.ModelForm):
         instance = super(MainPageOPJournalForm, self).save(commit=False)
         if commit:
             instance.save()
+        file = self.cleaned_data.get('file')
+        if file:
+            instance.file = file
         return instance
-
 
 class OPJournalForm(forms.ModelForm):
     class Meta:

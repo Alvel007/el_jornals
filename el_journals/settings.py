@@ -20,7 +20,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'wkhtmltopdf',
     'widget_tweaks',
     'staff.apps.StaffConfig',
     'op_journal.apps.OpJournalConfig',
@@ -87,7 +86,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru'
 
-TIME_ZONE = 'Europe/Samara'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -139,8 +138,3 @@ NUMBER_ENTRIES_OP_LOG_PAGE = 30
 # В течении какого периода допускается внесение записей в оперативный журнал задним числом (в часах)
 REVERSE_EDITING_PERIOD = 22
 
-WKHTMLTOPDF_CMD = 'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'
-
-WKHTMLTOPDF_CMD_OPTIONS = {
- 'quiet': True,
-}

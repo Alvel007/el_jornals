@@ -1,4 +1,6 @@
 from django.urls import path
+from django.conf.urls.static import static
+from django.conf import settings
 
 from .views import *
 
@@ -12,3 +14,6 @@ urlpatterns = [
     path('<str:substation_slug>/export-records/', export_records, name='export_records'),
     path('add_comment/<int:post_id>/', add_comment, name='add_comment'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

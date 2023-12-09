@@ -38,7 +38,7 @@ class СommentOPJAdmin(admin.ModelAdmin):
 
 
 class MainPageOPJournalAdmin(admin.ModelAdmin):
-    list_display = ('id', 'short_text', 'real_date_format', 'pub_date_format', 'substation', 'user', 'comment', 'entry_is_valid', 'special_regime_introduced', 'emergency_event', 'short_circuit')
+    list_display = ('id', 'short_text', 'real_date_format', 'pub_date_format', 'substation', 'user', 'comment', 'entry_is_valid', 'special_regime_introduced', 'emergency_event', 'short_circuit', 'file')
     list_display_links = ('id', 'short_text')
     search_fields = ('text', 'substation__name', 'user__last_name')
     list_filter = ('substation', 'entry_is_valid', 'special_regime_introduced', 'emergency_event')

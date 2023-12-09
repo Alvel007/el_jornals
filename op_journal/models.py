@@ -2,6 +2,8 @@ from django.db import models
 from django.utils import timezone
 from staff.models import CustomUser
 from substation.models import Substation
+import pytz
+
 
 
 class СommentOPJ(models.Model):
@@ -51,11 +53,21 @@ class MainPageOPJournal(models.Model):
                                           default=False)
     short_circuit = models.BooleanField(verbose_name='КЗ в сети 6-35 кВ',
                                         default=False)
+    file = models.FileField(upload_to='files/',
+                            verbose_name='Дополнительные файлы',
+                            blank=True,
+                            null=True)
 
 
     class Meta:
         verbose_name = 'Запись опер. журнала'
         verbose_name_plural = 'Записи опер. журналов'
+        
+    def save(self, *args, **kwargs):
+        moscow_timezone = pytz.timezone('Europe/Moscow')
+        self.real_date = self.real_date.astimezone(moscow_timezone)
+        self.pub_date = self.pub_date.astimezone(moscow_timezone)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.pub_date} {self.user} внес запись в ОЖ {self.substation}.'

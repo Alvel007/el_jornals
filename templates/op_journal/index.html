@@ -3,13 +3,13 @@
 <div class="container-fluid">
   {% if substation_slug %}
     <h1 class="text-center">{{ head }}</h1>
-  {% else %}
-    <h1 class="text-center"> Инструкция по использования электронного оперативного журнала</h1>
   {% endif %}
   <div class ="row">
       <div class="col-12" style="background-color: #ffffff;">
         {% if substation_slug %}
           {% include 'op_journal/op_journal.html' %}
+        {% elif substation_name %}
+          {% include 'op_journal/plug.html' %}
         {% else %}
           {% include 'op_journal/manual.html' %}
         {% endif %}

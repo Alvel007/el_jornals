@@ -11,19 +11,19 @@ class CustomUserAdmin(BaseUserAdmin):
 
     list_display = ('username', 'position', 'last_name', 'first_name', 'middle_name', 'birth_date', 'employee_id', 'electrical_safety_group', 'get_operational_staff', 'get_administrative_staff', 'slug', 'is_public')
     search_fields = ('last_name', 'employee_id')
-    filter_horizontal = ('operational_staff', 'administrative_staff')
+    filter_horizontal = ('operational_staff', 'administrative_staff', 'admin_opj')
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'middle_name', 'position', 'birth_date', 'employee_id', 'electrical_safety_group')}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
-        ('Important dates', {'fields': ('last_login', 'date_joined')}),
-        ('Additional info', {'fields': ('operational_staff', 'administrative_staff', 'is_public')}),
+        ('Основная информация о пользователе', {'fields': ('last_name', 'first_name', 'middle_name', 'position', 'main_place_work', 'substation_group', 'birth_date', 'employee_id', 'electrical_safety_group')}),
+        ('Права пользователя', {'fields': ('is_active', 'is_staff', 'is_superuser', 'is_public')}),
+        ('Активность пользователя', {'fields': ('last_login', 'date_joined')}),
+        ('Права пользователя по ведению оперативного журнала', {'fields': ('operational_staff', 'administrative_staff', 'admin_opj')}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'password1', 'password2', 'last_name', 'first_name', 'middle_name', 'birth_date', 'employee_id', 'electrical_safety_group', 'operational_staff', 'administrative_staff', 'is_public'),
+            'fields': ('username', 'password1', 'password2', 'last_name', 'first_name', 'middle_name', 'birth_date','position', 'main_place_work', 'substation_group', 'employee_id', 'electrical_safety_group', 'operational_staff', 'administrative_staff', 'admin_opj', 'is_staff', 'is_public'),
         }),
     )
     list_per_page = NUMBER_ENTRIES_OP_LOG_PAGE

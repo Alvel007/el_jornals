@@ -4,9 +4,10 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from .models import MainPageOPJournal, СommentOPJ
 from django.shortcuts import get_object_or_404, render
+from multiupload.fields import MultiFileField
 
 
-from el_journals.settings import REVERSE_EDITING_PERIOD
+from el_journals.settings import REVERSE_EDITING_PERIOD, FILE_UPLOAD_MAX_MEMORY_SIZE
 from django.shortcuts import redirect, reverse
 from substation.models import Substation
 
@@ -20,7 +21,7 @@ class MainPageOPJournalForm(forms.ModelForm):
     )
     text = forms.CharField(widget=forms.Textarea(attrs={'id': 'autocomplete-text'}))
     substation = forms.ModelChoiceField(queryset=Substation.objects.all(), widget=forms.HiddenInput())
-    file = forms.FileField(label='Дополнительные материалы', required=False)
+    file = MultiFileField(min_num=1, max_num=5, max_file_size=FILE_UPLOAD_MAX_MEMORY_SIZE, required=False)
 
     class Meta:
         model = MainPageOPJournal

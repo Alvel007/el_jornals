@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.text import slugify
 from unidecode import unidecode
 from el_journals.settings import NAME_MAX_LENGTH, DEFAULT_PERSONAL_POSITION
-from substation.models import Substation
+from substation.models import Substation, GroupSubstation
 
 
 class CustomUser(AbstractUser):
@@ -44,6 +44,16 @@ class CustomUser(AbstractUser):
         verbose_name="Должность",
         null=True
     )
+    main_place_work = models.ForeignKey(Substation,
+                                        on_delete=models.PROTECT,
+                                        null=True, blank=True,
+                                        verbose_name='Основное место работы',
+                                        help_text = 'Указывается только для персонала, закрепленного за ПС по штатному расписания (необязательно для заполнения).')
+    substation_group = models.ForeignKey(GroupSubstation,
+                                        on_delete=models.PROTECT,
+                                        null=True, blank=True,
+                                        verbose_name='Группа подстанций',
+                                        help_text = 'Указывается в какой группе ПС, ЦУС, ПМЭС, МЭС работает персонал.')
     employee_id = models.CharField(
         max_length=NAME_MAX_LENGTH,
         verbose_name='Таб. номер',
@@ -64,6 +74,11 @@ class CustomUser(AbstractUser):
                                                   default=None,
                                                   related_name='administrative_staff',
                                                   blank=True)
+    admin_opj = models.ManyToManyField(Substation,
+                                       verbose_name='Просмотр служебной информации оперативного журнала',
+                                       default=None,
+                                       related_name='admin_opj',
+                                       blank=True)
     slug = models.SlugField(verbose_name='Слаг',
                             unique=True,
                             editable=False)

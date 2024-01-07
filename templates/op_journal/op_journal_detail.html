@@ -1,81 +1,107 @@
-{% extends 'base.html' %}
-{% block body_site_page %}
-
-<div class="container">
-  <h2>Запись {{ op_journal_entry.id }} внес {{ op_journal_entry.user }} в оперативный журнал {{ op_journal_entry.substation }}</h2>
-  <table class="table table-bordered border-primary" style="width: 70%;">
-    <colgroup>
-      <col style="width: 25%;">
-      <col style="width: 75%;">
-    </colgroup>
-    <thead>
-      <tr>
-        <th scope="col">Форма</th>
-        <th scope="col">Содержание</th>
+{% extends 'base.html' %} 
+{% block body_site_page %} 
+  {% if op_journal_entry.substation in request.user.admin_opj.all or op_journal_entry.substation in request.user.administrative_staff.all or op_journal_entry.substation in request.user.operational_staff.all %} 
+<div class="container"> 
+  <h2>Запись внес {{ op_journal_entry.user }} в оперативный журнал {{ op_journal_entry.substation }}</h2> 
+  <table class="table table-bordered border-primary" style="width: 70%;"> 
+    <colgroup> 
+      <col style="width: 25%;"> 
+      <col style="width: 75%;"> 
+    </colgroup> 
+    <thead> 
+      <tr> 
+        <th scope="col">Форма</th> 
+        <th scope="col">Содержание</th> 
+      </tr> 
+    </thead> 
+    <tbody> 
+      <tr> 
+        <th scope="row">Идентификатор записи:</th> 
+        <td>{{ op_journal_entry.id }}</td> 
       </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <th scope="row">Номер записи:</th>
-        <td>{{ op_journal_entry.id }}</td>
-      </tr>
-      <tr>
-        <th scope="row">Запись внес:</th>
-        <td>{{ op_journal_entry.user }}</td>
-      </tr>
-      <tr>
-        <th scope="row">Объект:</th>
-        <td>{{ op_journal_entry.substation }}</td>
-      </tr>
-      <tr>
-        <th scope="row">Время выполнения:</th>
-        <td>{{ op_journal_entry.pub_date }}</td>
-      </tr>
-      <tr>
-        <th scope="row">Время создания записи:</th>
-        <td>{{ op_journal_entry.real_date }}</td>
-      </tr>
-      <tr>
-        <th scope="row">Содержание:</th>
-        <td>{{ op_journal_entry.text }}</td>
-      </tr>
-      {% if op_journal_entry.comment %}
-      <tr>
-        <th scope="row">Время создания комментария:</th>
-        <td>{{ op_journal_entry.comment.real_date }}</td>
-      </tr>
-      <tr>
-        <th scope="row">Комментарий АТП:</th>
-        <td>{{ op_journal_entry.comment.text }}<br>{{ op_journal_entry.comment.user.position }} {{ op_journal_entry.comment.user }} </td>
-      </tr>
+      <tr> 
+        <th scope="row">Объект:</th> 
+        <td>{{ op_journal_entry.substation }}</td> 
+      </tr> 
+      <tr> 
+        <th scope="row">Время выполнения действия:</th> 
+        <td>{{ op_journal_entry.pub_date }}</td> 
+      </tr> 
+      {% if op_journal_entry.substation in request.user.admin_opj.all  %}
+      <tr> 
+        <th scope="row">Время создания записи:</th> 
+        <td>{{ op_journal_entry.real_date }}</td> 
+      </tr> 
       {% endif %}
-      <tr>
-        <th scope="row">Состояние записи:</th>
-        {% if op_journal_entry.entry_is_valid == True %}
-        <td class="text-success">Верна</td>
-        {% else %}
-        <td class="text-danger">Ошибочна</td>
-        {% endif %}
+      <tr> 
+        <th scope="row">Запись внес:</th> 
+        <td>{{ op_journal_entry.user_signature }}</td> 
+      </tr> 
+      <tr> 
+        <th scope="row">Содержание:</th> 
+        <td>{{ op_journal_entry.text }}</td> 
+      </tr>     
+      {% if op_journal_entry.files.all %} 
+      <tr> 
+        <th scope="row">Прикреплены следующие файлы:</th> 
+        <td> 
+          {% for file in op_journal_entry.files.all %} 
+            <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a><br> 
+          {% endfor %} 
+        </td> 
+      </tr> 
+      {% endif %} 
+      {% if op_journal_entry.comment %} 
+      {% if op_journal_entry.substation in request.user.admin_opj.all  %}
+      <tr> 
+        <th scope="row">Время создания комментария АТП:</th> 
+        <td>{{ op_journal_entry.comment.real_date }}</td> 
       </tr>
-      {% if op_journal_entry.special_regime_introduced %}
-      <tr>
-        <th scope="row">Введен особый режим работы:</th>
-        <td> Да </td>
+      {% endif %}  
+      <tr> 
+        <th scope="row">Комментарий оставил:</th> 
+        <td> {{ op_journal_entry.comment.user_signature }} </td> 
       </tr>
-      {% endif %}
-      {% if op_journal_entry.emergency_event %}
-      <tr>
-        <th scope="row">Фиксация аварийного откллючения, пожара или несчастного случая:</th>
-        <td> Да </td>
+      <tr> 
+        <th scope="row">Содержание комментария:</th> 
+        <td> {{ op_journal_entry.comment.text }} </td> 
       </tr>
-      {% endif %}
-      {% if op_journal_entry.short_circuit %}
-      <tr>
-        <th scope="row">Фиксация короткого замыкания на СШ 6-35 кВ:</th>
-        <td> Да </td>
+      {% endif %} 
+      <tr> 
+        <th scope="row">Состояние записи:</th> 
+        {% if op_journal_entry.entry_is_valid == True %} 
+        <td class="text-success">Верна</td> 
+        {% else %} 
+        <td class="text-danger">Ошибочна</td> 
+        {% endif %} 
+      </tr> 
+      {% if op_journal_entry.special_regime_introduced %} 
+      <tr> 
+        <th scope="row">Введен особый режим работы:</th> 
+        <td> Да </td> 
+      </tr> 
+      {% endif %} 
+      {% if op_journal_entry.emergency_event %} 
+      <tr> 
+        <th scope="row">Фиксация аварийного откллючения, пожара или несчастного случая:</th> 
+        <td> Да </td> 
+      </tr> 
+      {% endif %} 
+      {% if op_journal_entry.short_circuit %} 
+      <tr> 
+        <th scope="row">Фиксация короткого замыкания на СШ 6-35 кВ:</th> 
+        <td> Да </td> 
       </tr>
       {% endif %}
     </tbody>
   </table>
+  <button class="btn btn-primary" onclick="window.history.back()">Вернуться назад</button>
 </div>
+  {% else %} 
+    <h2 class="text-center">Отказано в доступе к записе номер {{ op_journal_entry.id }}.</h2>
+    <h3 class="text-center">Если Вы считаете, что это ошибка, свяжитесь с администратором.</h3> 
+  <div class="d-flex justify-content-center">
+    <button class="btn btn-primary" onclick="window.history.back()">Вернуться назад</button>
+  </div> 
+  {% endif %} 
 {% endblock body_site_page %}

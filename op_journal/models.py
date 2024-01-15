@@ -21,7 +21,8 @@ class СommentOPJ(models.Model):
     user_signature = models.CharField(verbose_name='Подпись пользователя',
                                       max_length=255,
                                       blank=True,
-                                      null=True,)
+                                      null=True,
+                                      editable=False)
 
     
     class Meta:
@@ -78,7 +79,16 @@ class MainPageOPJournal(models.Model):
     user_signature = models.CharField(verbose_name='Подпись пользователя',
                                       max_length=255,
                                       blank=True,
-                                      null=True,)
+                                      null=True,
+                                      editable=False)
+    important_event_date_start = models.DateTimeField(verbose_name='Вывод в ремонт/допуск бригады',
+                                                    default=None,
+                                                    blank=True,
+                                                    null=True)
+    important_event_date_over = models.DateTimeField(verbose_name='Ввод в работу/окончание работ, допущенной бригады',
+                                                    default=None,
+                                                    blank=True,
+                                                    null=True)
 
 
     class Meta:
@@ -104,7 +114,7 @@ class MainPageOPJournal(models.Model):
 
     def __str__(self):
         pub_date_formatted = self.pub_date.strftime('%Y-%m-%d %H:%M')
-        return f'{pub_date_formatted} {self.user_signature} внес запись в оперативный журнал {self.substation}.'
+        return self.text
 
 
 class AutocompleteOption(models.Model):

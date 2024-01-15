@@ -55,7 +55,7 @@ class СommentOPJAdmin(admin.ModelAdmin):
 
 
 class MainPageOPJournalAdmin(admin.ModelAdmin):
-    list_display = ('id', 'short_text', 'real_date_format', 'pub_date_format', 'substation', 'user', 'comment', 'entry_is_valid', 'special_regime_introduced', 'emergency_event', 'short_circuit', 'get_files')
+    list_display = ('id', 'short_text', 'real_date_format', 'pub_date_format', 'substation', 'user', 'comment', 'entry_is_valid', 'special_regime_introduced', 'emergency_event', 'short_circuit', 'get_files', 'important_event_date_start', 'important_event_date_over')
     list_display_links = ('id', 'short_text')
     search_fields = ('text', 'substation__name', 'user__last_name')
     list_filter = ('substation', 'entry_is_valid', 'special_regime_introduced', 'emergency_event')
@@ -89,7 +89,7 @@ class MainPageOPJournalAdmin(admin.ModelAdmin):
     
     def get_readonly_fields(self, request, obj=None):
         if obj and not SUPER_ADMIN:
-            return self.readonly_fields + ('text', 'real_date', 'pub_date', 'substation', 'user', 'comment', 'entry_is_valid', 'special_regime_introduced', 'emergency_event', 'short_circuit', 'user_signature', 'get_files')
+            return self.readonly_fields + ('text', 'real_date', 'pub_date', 'substation', 'user', 'comment', 'entry_is_valid', 'special_regime_introduced', 'emergency_event', 'short_circuit', 'user_signature', 'get_files', 'important_event_date_start')
         return self.readonly_fields
 
     

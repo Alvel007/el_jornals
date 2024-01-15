@@ -7,7 +7,7 @@ SECRET_KEY = 'django-insecure-hm%n!u0f==#$mddt(3p1%*hk#_8butdv80@gzsk3l419zr4p30
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.2.2', '213.178.52.45']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.2.2', '92.240.129.156']
 
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
@@ -54,7 +54,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'substation.context_processors.add_substations_to_context',
+                'substation.context_processors.substation_list',
             ],
         },
     },
@@ -120,6 +120,7 @@ DEFAULT_PERSONAL_POSITION = [('Электромонтер по обслужив�
                              ('АТП', 'АТП'),
                              ('Зам. гл. инженера', 'Зам. гл. инженера'),
                              ('Главный инженер', 'Главный инженер'),
+                             ('Системный администратор', 'Системный администратор'),
                              ]
 
 # Должности, которые могут быть назначены в управление группы ПС

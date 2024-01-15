@@ -6,3 +6,7 @@ django-widget-tweaks
 django-datetime-widget
 xhtml2pdf
 django-multiupload
+docx2pdf
+docxtpl
+python-docx
+PyPDF2

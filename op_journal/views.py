@@ -98,7 +98,6 @@ class OpJournalView(ListView, FormView):
         if not substation_slug:
             return self.render_to_response({'template': 'op_journal/manual.html'})
         return super().get(request, *args, **kwargs)
-    
 
     def post(self, request, *args, **kwargs):
         self.object_list = self.get_queryset()
@@ -110,28 +109,28 @@ class OpJournalView(ListView, FormView):
         substation_slug = self.kwargs.get('substation_slug')
         return HttpResponseRedirect(reverse('sub_op_journal', args=[substation_slug]))
 
-    def get_queryset(self):
-        substation_slug = self.kwargs.get('substation_slug')
-        query = self.request.GET.get('query')
-        start_date = self.request.GET.get('start_date')
-        end_date = self.request.GET.get('end_date')
-        substation = Substation.objects.get(slug=substation_slug)
-        queryset = MainPageOPJournal.objects.none()
-        context = RequestContext(self.request)
-        if substation in self.request.user.admin_opj.all() or substation in self.request.user.administrative_staff.all() or substation in self.request.user.operational_staff.all():
-            queryset = MainPageOPJournal.objects.filter(substation__slug=substation_slug)
-            if query:
-                queryset = queryset.filter(text__icontains=query)
-            if start_date and end_date:
-                moscow_tz = pytz.timezone('Europe/Moscow')
-                start_date = timezone.datetime.strptime(start_date, "%Y-%m-%d").date()
-                end_date = timezone.datetime.strptime(end_date, "%Y-%m-%d").date()
-                start_date = moscow_tz.localize(timezone.datetime.combine(start_date, timezone.datetime.min.time()))
-                end_date = moscow_tz.localize(timezone.datetime.combine(end_date, timezone.datetime.max.time()))
-                queryset = queryset.filter(Q(pub_date__gte=start_date, pub_date__lte=end_date))
-            queryset = queryset.order_by('-pub_date', '-id')[:TOTAL_VISIBLE_RECORDS_OPJ]
-        else:
-            context['substation_name'] = substation.name
+    def get_queryset(self): 
+        substation_slug = self.kwargs.get('substation_slug') 
+        query = self.request.GET.get('query') 
+        start_date = self.request.GET.get('start_date') 
+        end_date = self.request.GET.get('end_date') 
+        substation = Substation.objects.get(slug=substation_slug) 
+        queryset = MainPageOPJournal.objects.none() 
+        context = RequestContext(self.request) 
+        if substation in self.request.user.admin_opj.all() or substation in self.request.user.administrative_staff.all() or substation in self.request.user.operational_staff.all(): 
+            queryset = MainPageOPJournal.objects.filter(substation__slug=substation_slug) 
+            if query: 
+                queryset = queryset.filter(text__icontains=query) 
+            if start_date and end_date: 
+                moscow_tz = pytz.timezone('Europe/Moscow') 
+                start_date = timezone.datetime.strptime(start_date, "%Y-%m-%d").date() 
+                end_date = timezone.datetime.strptime(end_date, "%Y-%m-%d").date() 
+                start_date = moscow_tz.localize(timezone.datetime.combine(start_date, timezone.datetime.min.time())) 
+                end_date = moscow_tz.localize(timezone.datetime.combine(end_date, timezone.datetime.max.time())) 
+                queryset = queryset.filter(Q(pub_date__gte=start_date, pub_date__lte=end_date)) 
+            queryset = queryset.order_by('-pub_date', '-id')[:TOTAL_VISIBLE_RECORDS_OPJ] 
+        else: 
+            context['substation_name'] = substation.name 
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -140,9 +139,8 @@ class OpJournalView(ListView, FormView):
         if substation_slug:
             substation = Substation.objects.get(slug=substation_slug)
             context['substation'] = substation
-            queryset = self.get_queryset()  # Используйте self.get_queryset() вместо self.object_list
-            if queryset.exists():
-                substation_name = queryset[0].substation.name
+            if context['object_list'].exists():
+                substation_name = context['object_list'][0].substation.name
                 context['head'] = f"Оперативный журнал {substation_name}"
                 context['title'] = f"Оперативный журнал {substation_name}"
                 context['substation_slug'] = substation_slug
@@ -150,24 +148,19 @@ class OpJournalView(ListView, FormView):
                 context['head'] = "Оперативный журнал"
                 context['title'] = "Оперативный журнал"
                 context['substation_name'] = substation.name
-            # Проверяем, есть ли у пользователя права на добавление записей для данной подстанции
             if substation in self.request.user.operational_staff.all():
-                form = MainPageOPJournalForm(initial={'substation': substation}, substation_slug=substation_slug, request=self.request)
+                form = MainPageOPJournalForm(initial={'substation': substation}, substation_slug=substation_slug)
                 context['form'] = form
                 context['has_permission'] = substation in self.request.user.operational_staff.all()
-            # Проверяем, есть ли у пользователя право оставления комментариев к записям этой подстанции
             if substation in self.request.user.administrative_staff.all():
                 comment_form = self.comment_form_class()
                 context['comment_form'] = comment_form
+            filtered_records = MainPageOPJournal.objects.filter(substation=substation, entry_is_valid=True, important_event_date_start__isnull=False, important_event_date_over__isnull=True).order_by('-pub_date', '-id')
+            context['filtered_model_op_journal_data'] = filtered_records
         else:
             context['substation_name'] = None
-            
-        moscow_tz = pytz.timezone('Europe/Moscow')
-        for obj in queryset:
-            obj.pub_date = obj.pub_date.astimezone(moscow_tz).strftime("%Y-%m-%d %H:%M:%S")
-            obj.real_date = obj.real_date.astimezone(moscow_tz).strftime("%Y-%m-%d %H:%M:%S")
-        if 'page_obj' in context and not context['page_obj'].object_list.exists():
-            paginator = Paginator(queryset, self.paginate_by)
+        if 'object_list' in context and not context['object_list'].exists():
+            paginator = Paginator(context['object_list'], self.paginate_by)
             last_page = paginator.num_pages
             page = self.request.GET.get('page', last_page)
             try:
@@ -189,12 +182,21 @@ class OpJournalView(ListView, FormView):
         user = self.request.user
         form.instance.user = user
         op_journal = form.save(commit=False)
+        if self.request.POST.get('important_event_checkbox'):
+            op_journal.important_event_date_start = op_journal.pub_date
         op_journal.save()
+
+        existing_entry_id = self.request.POST.get('existing_entry')
+        if existing_entry_id:
+            existing_entry = get_object_or_404(MainPageOPJournal, id=existing_entry_id)
+            existing_entry.important_event_date_over = op_journal.pub_date
+            existing_entry.save()
 
         files = self.request.FILES.getlist('file')
         for file in files:
             file_instance = FileModelOPJ(main_page_op_journal=op_journal, file=file)
             file_instance.save()
+        form.save_m2m()
         return HttpResponseRedirect(reverse('sub_op_journal', args=[form.instance.substation.slug]))
 
 def autocomplete_view(request, substation_slug):

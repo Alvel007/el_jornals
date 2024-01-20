@@ -4,6 +4,7 @@ from django.db.models import Q
 from .models import GroupSubstation, Substation
 from staff.models import CustomUser
 from el_journals.settings import NUMBER_ENTRIES_OP_LOG_PAGE
+from .forms import SubstationForm
 
 
 class GroupSubstationAdminForm(forms.ModelForm):
@@ -26,19 +27,9 @@ class GroupSubstationAdmin(admin.ModelAdmin):
     get_include_substations.short_description = 'Включает в себя ПС'
 
 
-class SubstationAdminForm(forms.ModelForm):
-
-    class Meta:
-        model = Substation
-        fields = '__all__'
-
-
 class SubstationAdmin(admin.ModelAdmin):
-    form = SubstationAdminForm
-    list_display = ('name',
-                    'address',
-                    'group_substation',
-                    'slug')
+    form = SubstationForm
+    list_display = ('name', 'dispatch_point', 'address', 'group_substation', 'slug')
 
 admin.site.register(GroupSubstation, GroupSubstationAdmin)
 admin.site.register(Substation, SubstationAdmin)

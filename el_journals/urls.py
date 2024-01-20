@@ -3,6 +3,7 @@ from django.urls import path, include
 from .views import *
 from django.conf.urls.static import static
 from django.conf import settings
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -10,6 +11,7 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('staff/', include('staff.urls')),
     path('op_journal/', include('op_journal.urls')),
+    path('', RedirectView.as_view(url='op_journal/')),
 ]
 
 

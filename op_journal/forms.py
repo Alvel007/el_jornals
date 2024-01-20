@@ -53,7 +53,6 @@ class MainPageOPJournalForm(forms.ModelForm):
         if time_difference.total_seconds() < 0:
             raise forms.ValidationError('Введенная дата не может быть больше текущей!')
         if time_difference.total_seconds() > REVERSE_EDITING_PERIOD * 3600:
-            print('привет')
             if REVERSE_EDITING_PERIOD % 10 == 1 and REVERSE_EDITING_PERIOD != 11:
                 hour = 'час'
             elif 2 <= REVERSE_EDITING_PERIOD % 10 <= 4 and (REVERSE_EDITING_PERIOD < 10 or REVERSE_EDITING_PERIOD > 20):
@@ -61,8 +60,15 @@ class MainPageOPJournalForm(forms.ModelForm):
             else:
                 hour = 'часов'
             raise forms.ValidationError(f'Введённая дата не может быть меньше текущей более, чем на {REVERSE_EDITING_PERIOD} {hour}!')
-        print('хуйня')
         return pub_date
+
+    def clean_file(self):
+        file = self.cleaned_data.get('file')
+        if file:
+            for f in file:
+                if f.size > settings.FILE_UPLOAD_MAX_MEMORY_SIZE:
+                    raise forms.ValidationError('Превышен максимальный размер файла', code='file_size_exceeded')
+        return file
     
     def save(self, commit=True):
         instance = super(MainPageOPJournalForm, self).save(commit=False)
@@ -77,6 +83,7 @@ class MainPageOPJournalForm(forms.ModelForm):
     class Meta: 
         model = MainPageOPJournal 
         fields = ['text', 'pub_date', 'substation', 'special_regime_introduced', 'emergency_event', 'short_circuit', 'file', 'important_event_checkbox', 'existing_entry']
+
 
 class OPJournalForm(forms.ModelForm):
     class Meta:

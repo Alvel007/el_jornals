@@ -137,6 +137,9 @@
   </div>
   <div class="collapse" id="collapseExample4">
     <div class="card card-body">
+      {% if substation.dispatch_point %}
+      <div class="d-flex justify-content-center"><h2>{{ substation.name }}</h2></div>
+      {% endif %}
       <ul>
         <hr class="w-100">
         <div class="table-responsive">
@@ -163,6 +166,36 @@
         </table>
         </div>
       </ul>
+      {% if substation.dispatch_point %}
+        {% for substation_name, substation_records in records_by_substation.items %}  
+          <div class="d-flex justify-content-center"><h2>{{ substation_name }}</h2></div>  
+          {% if substation_records %}  
+              <ul>  
+                  <div class="table-responsive">  
+                      <table class="table table-bordered border-primary table-hover">  
+                          <thead>  
+                              <tr>  
+                                  <th class="text-center" scope="col">Дата и время вывода оборудования в ремонт/допуска персонала</th>  
+                                  <th class="text-center" scope="col">Содержание записи о выводе в ремонт оборудования/допуске персонала</th>  
+                              </tr>  
+                          </thead>  
+                          <tbody>  
+                              {% for record in substation_records %}  
+                                  <tr>  
+                                      <td>{{ record.pub_date }}</td>  
+                                      <td class="{% if record.special_regime_introduced %}border border-danger border-5{% endif %}">  
+                                          {{ record.text }}<br>  
+                                          {{ record.user_signature }}  
+                                      </td>  
+                                  </tr>  
+                              {% endfor %}  
+                          </tbody>  
+                      </table>  
+                  </div>  
+              </ul>  
+        {% endif %}  
+      {% endfor %}
+      {% endif %}
     </div>
   </div>
 </div>
@@ -184,17 +217,23 @@
       {% endif %}
     </div>
     <div class="mb-3">
-        <label for="id_pub_date" class="form-label">Время выполнения действия:</label>
-        {{ form.pub_date }}
-        {% if form.pub_date.errors %}
-        <div class="text-danger">
-            {% for error in form.pub_date.errors %}
-            <span>{{ error }}</span>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {{ form.errors }}
-    </div>
+      <label for="id_pub_date" class="form-label">Время выполнения действия:</label>
+      {{ form.pub_date }}
+      {% if form.pub_date.errors %}
+          <div class="text-danger">
+              {% for error in form.pub_date.errors %}
+                  <span>{{ error }}</span>
+              {% endfor %}
+          </div>
+      {% endif %}
+      {% if form.file.errors %}
+          <ul class="errorlist" style="color: red;">
+              {% for error in form.file.errors %}
+                  <li>{{ error }}</li>
+              {% endfor %}
+          </ul>
+      {% endif %}
+  </div>
 
 
     <div class="btn-group-toggle" data-toggle="buttons">
@@ -284,6 +323,7 @@
 {% endif %}
 
 <hr class="w-100">
+<div class="d-flex justify-content-center"><h2>Внесённые записи в оперативный журнал {{substation.name}}</h2></div>  
 <div class="table-responsive">
   <table class="table table-bordered border-primary table-hover">
     <thead>

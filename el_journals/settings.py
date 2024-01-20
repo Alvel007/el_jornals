@@ -7,8 +7,7 @@ SECRET_KEY = 'django-insecure-hm%n!u0f==#$mddt(3p1%*hk#_8butdv80@gzsk3l419zr4p30
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.2.2', '92.240.129.156']
-
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.2.2', '92.240.132.1']
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
 ]
@@ -135,7 +134,8 @@ TOTAL_VISIBLE_RECORDS_OPJ = 1000
 
 # В течении какого периода допускается внесение записей в оперативный журнал задним числом (в часах).
 # Рекомендуется НЕ ставить менее 0,25 часа, чтобы персонал успевал заполнять содержание записи, не обновляя поле "Время выполнения действия"
-REVERSE_EDITING_PERIOD = 22
+# дробные значения указывать через точку (например 0.25)
+REVERSE_EDITING_PERIOD = 5
 
 # Размер максимального загружаемого файла в МБ
 MAX_FILE_SIZE = 5

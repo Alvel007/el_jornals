@@ -1,0 +1,27 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Обработчик события изменения значения dispatch_point
+            $('#id_dispatch_point').change(function() {
+                if ($(this).is(':checked')) {
+                    // Если dispatch_point выбран, разблокировать поле dispatcher_for
+                    $('#id_dispatcher_for').prop('disabled', false);
+                } else {
+                    // Если dispatch_point не выбран, заблокировать поле dispatcher_for и сбросить его значение
+                    $('#id_dispatcher_for').prop('disabled', true);
+                    $('#id_dispatcher_for').val('');
+                }
+            });
+
+            // Инициализация состояния полей при загрузке страницы
+            if (!$('#id_dispatch_point').is(':checked')) {
+                $('#id_dispatcher_for').prop('disabled', true);
+                $('#id_dispatcher_for').val('');
+            }
+        });
+    </script>
+{% endblock %}

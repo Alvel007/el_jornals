@@ -46,6 +46,8 @@ from django.template import RequestContext
 from xhtml2pdf import pisa
 from datetime import datetime, timedelta
 from django.utils import timezone
+from django.contrib import messages
+
 
 from op_journal.models import MainPageOPJournal, AutocompleteOption, FileModelOPJ
 from el_journals.settings import NUMBER_ENTRIES_OP_LOG_PAGE, STATICFILES_DIRS, STATIC_URL, MEDIA_URL, MEDIA_ROOT, TOTAL_VISIBLE_RECORDS_OPJ
@@ -149,12 +151,29 @@ class OpJournalView(ListView, FormView):
                 context['title'] = "Оперативный журнал"
                 context['substation_name'] = substation.name
             if substation in self.request.user.operational_staff.all():
-                form = MainPageOPJournalForm(initial={'substation': substation}, substation_slug=substation_slug)
+                form = kwargs.get('form', MainPageOPJournalForm(initial={'substation': substation}, substation_slug=substation_slug))
                 context['form'] = form
                 context['has_permission'] = substation in self.request.user.operational_staff.all()
             if substation in self.request.user.administrative_staff.all():
                 comment_form = self.comment_form_class()
                 context['comment_form'] = comment_form
+            if substation.dispatch_point: 
+                dispatcher_records = MainPageOPJournal.objects.filter(
+                    substation__in=substation.dispatcher_for.all(),
+                    entry_is_valid=True,
+                    important_event_date_start__isnull=False,
+                    important_event_date_over__isnull=True
+                ).order_by('-pub_date', '-id') 
+
+                records_by_substation = {} 
+                for record in dispatcher_records: 
+                    substation_name = record.substation.name
+                    if substation_name not in records_by_substation: 
+                        records_by_substation[substation_name] = [] 
+                    records_by_substation[substation_name].append(record) 
+
+                context['records_by_substation'] = records_by_substation
+            
             filtered_records = MainPageOPJournal.objects.filter(substation=substation, entry_is_valid=True, important_event_date_start__isnull=False, important_event_date_over__isnull=True).order_by('-pub_date', '-id')
             context['filtered_model_op_journal_data'] = filtered_records
         else:
@@ -170,13 +189,18 @@ class OpJournalView(ListView, FormView):
             context['page_obj'] = page
         return context
 
+
     def form_invalid(self, form):
-        context = self.get_context_data(form=form)
         substation_slug = self.kwargs.get('substation_slug', None)
         if substation_slug:
             substation = Substation.objects.get(slug=substation_slug)
-            context['substation'] = substation
-        return self.render_to_response(context)
+            form.fields['existing_entry'].queryset = MainPageOPJournal.objects.filter(
+                entry_is_valid=True,
+                important_event_date_start__isnull=False,
+                important_event_date_over__isnull=True,
+                substation=substation
+            )
+        return self.render_to_response(self.get_context_data(form=form))
 
     def form_valid(self, form):
         user = self.request.user

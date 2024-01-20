@@ -1,8 +1,9 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import slugify
 from unidecode import unidecode
 from el_journals.settings import NAME_MAX_LENGTH
-
+from django.db.models import Subquery
 
 
 class Substation(models.Model):
@@ -20,10 +21,21 @@ class Substation(models.Model):
     slug = models.SlugField(verbose_name='Слаг',
                             unique=True,
                             editable=False)
+    dispatch_point = models.BooleanField(verbose_name='Является диспетчерским пунктом',
+                                         default=False)
+    dispatcher_for = models.ManyToManyField('self',
+                                            blank=True,
+                                            verbose_name='Диспетчер для:',
+                                            help_text='Выберите объекты для диспетчеризации этого ДП',)
+
+    def get_substations(self):
+        return self.dispatcher_for.all()
 
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(unidecode(self.name))
+        if not self.dispatch_point:  # Если dispatch_point = False
+            self.dispatcher_for.clear()
         super().save(*args, **kwargs)
 
     class Meta:

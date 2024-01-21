@@ -66,7 +66,7 @@ class MainPageOPJournalForm(forms.ModelForm):
         file = self.cleaned_data.get('file')
         if file:
             for f in file:
-                if f.size > settings.FILE_UPLOAD_MAX_MEMORY_SIZE:
+                if f.size > FILE_UPLOAD_MAX_MEMORY_SIZE:
                     raise forms.ValidationError('Превышен максимальный размер файла', code='file_size_exceeded')
         return file
     

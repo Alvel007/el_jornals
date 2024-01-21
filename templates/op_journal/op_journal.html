@@ -105,9 +105,12 @@
     <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample4" aria-expanded="false" aria-controls="collapseExample3">
       Отклонения от исходной схемы
     </button>
+    <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample9" aria-expanded="false" aria-controls="collapseExample3">
+      Законченные работы
+    </button>
   </p>
   <div class="collapse" id="collapseExample2">
-    <div class="card card-body">
+    <div class="d-flex justify-content-center"><h2>Поиск по содержанию записей/по дате:</h2></div><br>
       <div class="d-flex justify-content-center">
         <form method="get" action="" class="search-form">
           <div class="d-flex flex-row align-items-center">
@@ -123,9 +126,9 @@
           </div>
         </form>
       </div>
-    </div>
   </div>
   <div class="collapse" id="collapseExample3">
+    <div class="d-flex justify-content-center"><h2>Выгрузить записи за период:</h2></div>
     <div class="d-flex justify-content-center">
       <form method="post" action="{% url 'export_records' substation_slug=substation_slug %}">
         {% csrf_token %}
@@ -137,9 +140,8 @@
   </div>
   <div class="collapse" id="collapseExample4">
     <div class="card card-body">
-      {% if substation.dispatch_point %}
+      <div class="d-flex justify-content-center"><h2>Текущие отклонения от исходной схемы</h2></div> 
       <div class="d-flex justify-content-center"><h2>{{ substation.name }}</h2></div>
-      {% endif %}
       <ul>
         <hr class="w-100">
         <div class="table-responsive">
@@ -158,6 +160,14 @@
                     </td>
                     <td class="{% if repair.special_regime_introduced %}border border-danger border-5{% endif %}">
                         {{ repair.text }}<br>
+                        {% if repair.files.all %}
+                          Прикрепленные файлы:
+                          {% for file in repair.files.all %}
+                            <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a>
+                            {% if not forloop.last %}, {% endif %}
+                          {% endfor %}
+                          <br>
+                        {% endif %}
                         {{ repair.user_signature }}
                     </td>
                 </tr>
@@ -184,7 +194,15 @@
                                   <tr>  
                                       <td>{{ record.pub_date }}</td>  
                                       <td class="{% if record.special_regime_introduced %}border border-danger border-5{% endif %}">  
-                                          {{ record.text }}<br>  
+                                          {{ record.text }}<br>
+                                          {% if record.files.all %}
+                                            Прикрепленные файлы:
+                                            {% for file in record.files.all %}
+                                              <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a>
+                                              {% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                            <br>
+                                          {% endif %}
                                           {{ record.user_signature }}  
                                       </td>  
                                   </tr>  
@@ -197,6 +215,51 @@
       {% endfor %}
       {% endif %}
     </div>
+  </div>
+  <div class="collapse" id="collapseExample9">
+    <div class="d-flex justify-content-center"><h2>Завершенные работы за последние {{ RETENTION_PERIOD_COMPLETED_RECORDS }} дней.</h2></div>  
+    <ul>  
+        <div class="table">  
+            <table class="table table-bordered border-primary table-hover">  
+                <thead>  
+                  <tr>  
+                      <th class="text-center" scope="col" style="width: 12%;">Дата и время записи вывода в ремонт/допуска бригады</th>  
+                      <th class="text-center" scope="col" style="width: 38%;">Содержание записи о выводе в ремонт/допуска бригады</th> 
+                      <th class="text-center" scope="col" style="width: 12%;">Дата и время записи ввода в работу/окончания работ</th>  
+                      <th class="text-center" scope="col" style="width: 38%;">Содержание записи о вводе в работу/окончании работ</th>
+                  </tr>
+                </thead>  
+                {% for disabling in disabling_model_op_journal_data %}  
+                <tbody>  
+                        <tr>  
+                            <td>{{ disabling.important_event_date_start }}</td>
+                            <td>{{ disabling.text }}<br>
+                                {% if disabling.files.all %}
+                                Прикрепленные файлы:
+                                  {% for file in disabling.files.all %}
+                                    <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a>
+                                    {% if not forloop.last %}, {% endif %}
+                                {% endfor %}<br>
+                                {% endif %}
+                                {{ disabling.user_signature }}</td>
+                            <td>{{ disabling.important_event_date_over }}</td>
+                            <td>{% for entry in disabling.closing_entry.all %}
+                                    {{ entry.text }}<br>
+                                      {% if entry.files.all %}
+                                    Прикрепленные файлы:
+                                      {% for file in entry.files.all %}
+                                        <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a>
+                                        {% if not forloop.last %}, {% endif %}
+                                    {% endfor %}<br>
+                                    {% endif %}
+                                    {{ entry.user_signature }}
+                                {% endfor %}</td>
+                        </tr>
+                </tbody> 
+                {% endfor %} 
+            </table>  
+        </div>  
+    </ul>
   </div>
 </div>
 

@@ -16,10 +16,12 @@ class GroupSubstationAdminForm(forms.ModelForm):
 
 class GroupSubstationAdmin(admin.ModelAdmin):
     form = GroupSubstationAdminForm
-    list_display = ('name',
+    list_display = ('id',
+                    'name',
                     'get_include_substations',
                     'slug')
     list_per_page = NUMBER_ENTRIES_OP_LOG_PAGE
+    list_display_links = ('name',)
 
     def get_include_substations(self, obj):
         return ", ".join([substation.name for substation in obj.substation_set.all()])
@@ -29,7 +31,9 @@ class GroupSubstationAdmin(admin.ModelAdmin):
 
 class SubstationAdmin(admin.ModelAdmin):
     form = SubstationForm
-    list_display = ('name', 'dispatch_point', 'address', 'group_substation', 'slug')
+    list_display = ('id', 'name', 'dispatch_point', 'address', 'group_substation', 'slug')
+    filter_horizontal = ('dispatcher_for',)
+    list_display_links = ('name',)
 
 admin.site.register(GroupSubstation, GroupSubstationAdmin)
 admin.site.register(Substation, SubstationAdmin)

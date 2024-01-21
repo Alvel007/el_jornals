@@ -89,7 +89,7 @@ class MainPageOPJournalAdmin(admin.ModelAdmin):
     
     def get_readonly_fields(self, request, obj=None):
         if obj and not SUPER_ADMIN:
-            return self.readonly_fields + ('text', 'real_date', 'pub_date', 'substation', 'user', 'comment', 'entry_is_valid', 'special_regime_introduced', 'emergency_event', 'short_circuit', 'user_signature', 'get_files', 'important_event_date_start')
+            return self.readonly_fields + ('text', 'real_date', 'pub_date', 'substation', 'user', 'comment', 'entry_is_valid', 'special_regime_introduced', 'emergency_event', 'short_circuit', 'user_signature', 'get_files', 'important_event_date_start', 'closing_entry')
         return self.readonly_fields
 
     
@@ -97,6 +97,8 @@ class AutocompleteOptionAdmin(admin.ModelAdmin):
     list_display = ('id', 'text', 'get_substations')
     search_fields = ('text',)
     list_per_page = NUMBER_ENTRIES_OP_LOG_PAGE
+    list_display_links = ('text',)
+    filter_horizontal = ('substation',)
 
     def get_substations(self, obj):
         return ", ".join([substation.name for substation in obj.substation.all()])

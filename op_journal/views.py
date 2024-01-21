@@ -50,7 +50,7 @@ from django.contrib import messages
 
 
 from op_journal.models import MainPageOPJournal, AutocompleteOption, FileModelOPJ
-from el_journals.settings import NUMBER_ENTRIES_OP_LOG_PAGE, STATICFILES_DIRS, STATIC_URL, MEDIA_URL, MEDIA_ROOT, TOTAL_VISIBLE_RECORDS_OPJ
+from el_journals.settings import NUMBER_ENTRIES_OP_LOG_PAGE, STATICFILES_DIRS, STATIC_URL, MEDIA_URL, MEDIA_ROOT, TOTAL_VISIBLE_RECORDS_OPJ, RETENTION_PERIOD_COMPLETED_RECORDS
 from .forms import MainPageOPJournalForm, OPJournalForm, CommentOPJForm
 from substation.models import Substation
 
@@ -157,6 +157,7 @@ class OpJournalView(ListView, FormView):
             if substation in self.request.user.administrative_staff.all():
                 comment_form = self.comment_form_class()
                 context['comment_form'] = comment_form
+            
             if substation.dispatch_point: 
                 dispatcher_records = MainPageOPJournal.objects.filter(
                     substation__in=substation.dispatcher_for.all(),
@@ -176,6 +177,16 @@ class OpJournalView(ListView, FormView):
             
             filtered_records = MainPageOPJournal.objects.filter(substation=substation, entry_is_valid=True, important_event_date_start__isnull=False, important_event_date_over__isnull=True).order_by('-pub_date', '-id')
             context['filtered_model_op_journal_data'] = filtered_records
+
+            disabling_records = MainPageOPJournal.objects.filter(
+                substation=substation,
+                entry_is_valid=True,
+                important_event_date_start__isnull=False,
+                important_event_date_over__isnull=False,
+                important_event_date_over__gte=datetime.now() - timedelta(days=RETENTION_PERIOD_COMPLETED_RECORDS)
+            ).order_by('-important_event_date_start', '-id')
+            context['disabling_model_op_journal_data'] = disabling_records
+
         else:
             context['substation_name'] = None
         if 'object_list' in context and not context['object_list'].exists():
@@ -187,6 +198,7 @@ class OpJournalView(ListView, FormView):
             except EmptyPage:
                 page = paginator.page(last_page)
             context['page_obj'] = page
+        context['RETENTION_PERIOD_COMPLETED_RECORDS'] = RETENTION_PERIOD_COMPLETED_RECORDS
         return context
 
 
@@ -209,13 +221,12 @@ class OpJournalView(ListView, FormView):
         if self.request.POST.get('important_event_checkbox'):
             op_journal.important_event_date_start = op_journal.pub_date
         op_journal.save()
-
         existing_entry_id = self.request.POST.get('existing_entry')
         if existing_entry_id:
             existing_entry = get_object_or_404(MainPageOPJournal, id=existing_entry_id)
             existing_entry.important_event_date_over = op_journal.pub_date
             existing_entry.save()
-
+            op_journal.closing_entry.add(existing_entry)  # Добавляем связь между экземплярами
         files = self.request.FILES.getlist('file')
         for file in files:
             file_instance = FileModelOPJ(main_page_op_journal=op_journal, file=file)

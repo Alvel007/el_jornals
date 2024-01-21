@@ -39,7 +39,7 @@ class СommentOPJ(models.Model):
                 post_user = self.user.substation_group.name_rp
             else:
                 post_user = self.user.main_place_work
-            self.user_signature = f'{fio}. {position} {post_user}'
+            self.user_signature = f'{fio} {position} {post_user}'
         super().save(*args, **kwargs)
         
     def __str__(self):
@@ -89,6 +89,11 @@ class MainPageOPJournal(models.Model):
                                                     default=None,
                                                     blank=True,
                                                     null=True)
+    closing_entry = models.ManyToManyField('self',
+                                            blank=True,
+                                            default=None,
+                                            verbose_name='Закрыта записью',
+                                            help_text='Выберете связанную запись, исключающую текущую запись из отклонений',)   
 
 
     class Meta:
@@ -105,7 +110,7 @@ class MainPageOPJournal(models.Model):
                 post_user = self.user.substation_group.name_rp
             else:
                 post_user = self.user.main_place_work
-            self.user_signature = f'{fio}. {position} {post_user}'
+            self.user_signature = f'{fio} {position} {post_user}'
                 
         moscow_timezone = pytz.timezone('Europe/Moscow')
         self.real_date = self.real_date.astimezone(moscow_timezone)
@@ -131,7 +136,7 @@ class AutocompleteOption(models.Model):
     
     class Meta:
         verbose_name = 'Автозаполнение формы'
-        verbose_name_plural = 'Автозаполнение форм'
+        verbose_name_plural = 'Автозаполнений форм'
         
 class FileModelOPJ(models.Model):
     main_page_op_journal = models.ForeignKey(MainPageOPJournal,

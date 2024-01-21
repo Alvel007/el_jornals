@@ -28,14 +28,10 @@ class Substation(models.Model):
                                             verbose_name='Диспетчер для:',
                                             help_text='Выберите объекты для диспетчеризации этого ДП',)
 
-    def get_substations(self):
-        return self.dispatcher_for.all()
 
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(unidecode(self.name))
-        if not self.dispatch_point:  # Если dispatch_point = False
-            self.dispatcher_for.clear()
         super().save(*args, **kwargs)
 
     class Meta:

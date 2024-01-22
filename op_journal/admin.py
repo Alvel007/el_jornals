@@ -50,16 +50,59 @@ class СommentOPJAdmin(admin.ModelAdmin):
     
     def get_readonly_fields(self, request, obj=None):
         if obj  and not SUPER_ADMIN:
-            return self.readonly_fields + ('text', 'real_date', 'user', 'mainpageopjournal', 'user_signature')
+            return self.readonly_fields + ('text',
+                                           'real_date',
+                                           'user',
+                                           'mainpageopjournal',
+                                           'user_signature',
+                                           )
         return self.readonly_fields
 
 
 class MainPageOPJournalAdmin(admin.ModelAdmin):
-    list_display = ('id', 'short_text', 'real_date_format', 'pub_date_format', 'substation', 'user', 'comment', 'entry_is_valid', 'special_regime_introduced', 'emergency_event', 'short_circuit', 'get_files', 'important_event_date_start', 'important_event_date_over')
-    list_display_links = ('id', 'short_text')
-    search_fields = ('text', 'substation__name', 'user__last_name')
-    list_filter = ('substation', 'entry_is_valid', 'special_regime_introduced', 'emergency_event')
+    list_display = ('id',
+                    'short_text',
+                    'real_date_format',
+                    'pub_date_format',
+                    'substation', 'user',
+                    'comment', 'entry_is_valid',
+                    'special_regime_introduced',
+                    'emergency_event', 'short_circuit',
+                    'get_files',
+                    'important_event_date_start',
+                    'important_event_date_over',
+                    )
+    list_display_links = ('id',
+                          'short_text',
+                          )
+    search_fields = ('text',
+                     'substation__name',
+                     'user__last_name',
+                     )
+    list_filter = ('substation',
+                   'entry_is_valid',
+                   'special_regime_introduced',
+                   'emergency_event',
+                   )
     list_per_page = NUMBER_ENTRIES_OP_LOG_PAGE
+
+    fieldsets = (
+        ('Основная информация', {'fields': ('substation',
+                                            'user',
+                                            'user_signature',
+                                            'text', 'pub_date',
+                                            'real_date',
+                                            'entry_is_valid')}),
+        ('Особые отметки выбранной записи', {'fields': ('special_regime_introduced',
+                                                        'emergency_event',
+                                                        'short_circuit')}),
+        ('Комментарий АТП к записи', {'fields': ('comment',)}),
+        ('Запись вносит отклонение в нормальный режим Да/Нет', {'fields': ('important_event_date_start',
+                                                                           'important_event_date_over',
+                                                                           'closing_entry')}),
+        ('Прикрепленные файлы', {'fields': ('get_files',)})
+    )
+
     if SUPER_ADMIN:
         inlines = [FileModelOPJInline]
 
@@ -89,7 +132,22 @@ class MainPageOPJournalAdmin(admin.ModelAdmin):
     
     def get_readonly_fields(self, request, obj=None):
         if obj and not SUPER_ADMIN:
-            return self.readonly_fields + ('text', 'real_date', 'pub_date', 'substation', 'user', 'comment', 'entry_is_valid', 'special_regime_introduced', 'emergency_event', 'short_circuit', 'user_signature', 'get_files', 'important_event_date_start', 'closing_entry')
+            return self.readonly_fields + ('text',
+                                            'real_date',
+                                            'pub_date',
+                                            'substation',
+                                            'user',
+                                            'comment',
+                                            'entry_is_valid',
+                                            'special_regime_introduced',
+                                            'emergency_event',
+                                            'short_circuit',
+                                            'user_signature',
+                                            'get_files',
+                                            'important_event_date_start',
+                                            'closing_entry',
+                                            'important_event_date_over'
+                                            )
         return self.readonly_fields
 
     

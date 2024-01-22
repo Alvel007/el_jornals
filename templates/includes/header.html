@@ -8,7 +8,7 @@
                 ЭЛЕКТРОННЫЙ ЖУРНАЛ
             </a>
         </div>
-        <div>
+        <div> 
             <ul class="nav navbar-nav">
                 {% if user.is_authenticated %}
                 <nav class="navbar navbar-light bg-primary">
@@ -18,7 +18,7 @@
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                             <a class="dropdown-item" href="{% url 'staff_list' %}"> Весь персонал </a>
-                            {% for sub  in model_sub_data %}
+                            {% for sub  in unique_subs %}
                             <li>
                                 <a class="dropdown-item" href="{% url 'sub_staff_category' sub.slug %}"> {{ sub }} </a>
                             </li>

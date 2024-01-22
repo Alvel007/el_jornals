@@ -42,7 +42,12 @@
         <td>{{ user.employee_id }}</tb>
         <td>{{ user.username }}</tb>
         <td>{{ user.last_name }} {{user.first_name}} {{user.middle_name}}</td>
-        <td class="text-center">{{ user.position }}</td>
+        <td class="text-center">{{ user.position }} 
+          {% if user.main_place_work %} 
+            {{ user.main_place_work }}
+          {% else %}
+            {{ user.substation_group.name_rp }}
+          {% endif %} </td>
         <td class="text-center">{{ user.electrical_safety_group }}</td>
         <td>{% if user in operational_staff %}
               <h3 class="text-center">

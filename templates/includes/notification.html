@@ -2,12 +2,20 @@
     <div class="col-10"></div>
     <div id="notification" class="col-2 alert alert-primary rounded" role="alert">
         Это уведомление со <a href="#" class="alert-link">ссылкой</a>.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
     </div>
 </div>
-
 <script>
     setTimeout(function() {
         var notification = document.getElementById('notification');
         notification.style.display = 'none';
-    }, 3000);
+    }, 10000);
+
+    var closeButton = document.querySelector('#notification .close');
+    closeButton.addEventListener('click', function() {
+        var notification = document.getElementById('notification');
+        notification.style.display = 'none';
+    });
 </script>

@@ -63,6 +63,8 @@ def op_journal_detail(request, pk):
     op_journal_entry = get_object_or_404(MainPageOPJournal, pk=pk)
     return render(request, 'op_journal/op_journal_detail.html', {'op_journal_entry': op_journal_entry})
 
+
+@login_required(login_url='/login/')
 def op_journal_edit(request, pk):
     op_journal_entry = get_object_or_404(MainPageOPJournal, pk=pk)
     if request.user == op_journal_entry.user:
@@ -76,6 +78,12 @@ def op_journal_edit(request, pk):
                         op_journal_entry.emergency_event = False
                         op_journal_entry.short_circuit = False
                     op_journal_entry.save()
+                    closing_entry = op_journal_entry.closing_entry.first()
+                    if closing_entry:
+                        closing_entry.important_event_date_over = None
+                        closing_entry.save()
+                    op_journal_entry.closing_entry.clear()
+                    
                     return HttpResponseRedirect(reverse('sub_op_journal', kwargs={'substation_slug': op_journal_entry.substation.slug}))
             else:
                 form = OPJournalForm(instance=op_journal_entry)
@@ -234,6 +242,8 @@ class OpJournalView(ListView, FormView):
         form.save_m2m()
         return HttpResponseRedirect(reverse('sub_op_journal', args=[form.instance.substation.slug]))
 
+
+@login_required(login_url='/login/')
 def autocomplete_view(request, substation_slug):
     substation = get_object_or_404(Substation, slug=substation_slug)
     query = request.GET.get('term', '')
@@ -241,6 +251,8 @@ def autocomplete_view(request, substation_slug):
     results = [option.text for option in options]
     return JsonResponse(results, safe=False)
 
+
+@login_required(login_url='/login/')
 def add_comment(request, post_id):
     post = get_object_or_404(MainPageOPJournal, pk=post_id)
 
@@ -255,6 +267,7 @@ def add_comment(request, post_id):
     return HttpResponseRedirect(reverse('sub_op_journal', args=[post.substation.slug]))
 
 
+@login_required(login_url='/login/')
 def export_records(request, substation_slug):
     start_date_str = request.POST.get('start_date')
     end_date_str = request.POST.get('end_date')

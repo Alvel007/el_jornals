@@ -7,7 +7,7 @@ SECRET_KEY = 'django-insecure-hm%n!u0f==#$mddt(3p1%*hk#_8butdv80@gzsk3l419zr4p30
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.2.2', '92.240.132.1']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.2.2', '37.9.156.117']
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
 ]

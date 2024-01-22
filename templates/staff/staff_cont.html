@@ -40,7 +40,12 @@
         <td>{{ user.employee_id }}</tb>
           <td>{{ user.username }}</tb>
         <td>{{ user.last_name }} {{user.first_name}} {{user.middle_name}}</td>
-        <td class="text-center">{{ user.position }}</td>
+        <td class="text-center">{{ user.position }} 
+          {% if user.main_place_work %} 
+            {{ user.main_place_work }}
+          {% else %}
+            {{ user.substation_group.name_rp }}
+          {% endif %}</td>
         <td class="text-center"><h6 class="text-center"></h6>{{ user.electrical_safety_group }}</h6></td>
         <td class="text-center">{% for op  in user.operational_staff.all %}
             {{ op.name }}</br>

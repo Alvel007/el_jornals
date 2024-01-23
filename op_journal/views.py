@@ -165,25 +165,40 @@ class OpJournalView(ListView, FormView):
             if substation in self.request.user.administrative_staff.all():
                 comment_form = self.comment_form_class()
                 context['comment_form'] = comment_form
-            
-            if substation.dispatch_point: 
+            if substation.dispatch_point:
                 dispatcher_records = MainPageOPJournal.objects.filter(
                     substation__in=substation.dispatcher_for.all(),
                     entry_is_valid=True,
                     important_event_date_start__isnull=False,
                     important_event_date_over__isnull=True
-                ).order_by('-pub_date', '-id') 
-
-                records_by_substation = {} 
-                for record in dispatcher_records: 
+                ).order_by('-pub_date', '-id')
+                records_by_substation = {}
+                for record in dispatcher_records:
                     substation_name = record.substation.name
-                    if substation_name not in records_by_substation: 
-                        records_by_substation[substation_name] = [] 
-                    records_by_substation[substation_name].append(record) 
-
+                    if substation_name not in records_by_substation:
+                        records_by_substation[substation_name] = []
+                    records_by_substation[substation_name].append(record)
                 context['records_by_substation'] = records_by_substation
-            
-            filtered_records = MainPageOPJournal.objects.filter(substation=substation, entry_is_valid=True, important_event_date_start__isnull=False, important_event_date_over__isnull=True).order_by('-pub_date', '-id')
+
+                completed_records_by_substation = {}
+                for dispatcher in substation.dispatcher_for.all():
+                    completed_records = MainPageOPJournal.objects.filter(
+                        substation=dispatcher,
+                        entry_is_valid=True,
+                        important_event_date_start__isnull=False,
+                        important_event_date_over__isnull=False,
+                        important_event_date_over__gte=datetime.now() - timedelta(days=RETENTION_PERIOD_COMPLETED_RECORDS)
+                    ).order_by('-important_event_date_start', '-id')
+                    if completed_records.exists():
+                        completed_records_by_substation[dispatcher.name] = completed_records
+                context['completed_records_by_substation'] = completed_records_by_substation
+
+            filtered_records = MainPageOPJournal.objects.filter(
+                substation=substation,
+                entry_is_valid=True,
+                important_event_date_start__isnull=False,
+                important_event_date_over__isnull=True
+            ).order_by('-pub_date', '-id')
             context['filtered_model_op_journal_data'] = filtered_records
 
             disabling_records = MainPageOPJournal.objects.filter(
@@ -194,9 +209,9 @@ class OpJournalView(ListView, FormView):
                 important_event_date_over__gte=datetime.now() - timedelta(days=RETENTION_PERIOD_COMPLETED_RECORDS)
             ).order_by('-important_event_date_start', '-id')
             context['disabling_model_op_journal_data'] = disabling_records
-
         else:
             context['substation_name'] = None
+
         if 'object_list' in context and not context['object_list'].exists():
             paginator = Paginator(context['object_list'], self.paginate_by)
             last_page = paginator.num_pages
@@ -206,6 +221,7 @@ class OpJournalView(ListView, FormView):
             except EmptyPage:
                 page = paginator.page(last_page)
             context['page_obj'] = page
+
         context['RETENTION_PERIOD_COMPLETED_RECORDS'] = RETENTION_PERIOD_COMPLETED_RECORDS
         return context
 

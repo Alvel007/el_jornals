@@ -217,7 +217,8 @@
     </div>
   </div>
   <div class="collapse" id="collapseExample9">
-    <div class="d-flex justify-content-center"><h2>Завершенные работы за последние {{ RETENTION_PERIOD_COMPLETED_RECORDS }} дней.</h2></div>  
+    <div class="d-flex justify-content-center"><h2>Завершенные работы за последние {{ RETENTION_PERIOD_COMPLETED_RECORDS }} дней</h2></div>  
+    <div class="d-flex justify-content-center"><h2>{{ substation.name }}.</h2></div>  
     <ul>  
         <div class="table">  
             <table class="table table-bordered border-primary table-hover">  
@@ -260,6 +261,63 @@
             </table>  
         </div>  
     </ul>
+
+    {% if substation.dispatch_point %}
+        {% for substation_name, completed_records in completed_records_by_substation.items %}
+            <div class="d-flex justify-content-center"><h2>{{ substation_name }}</h2></div>
+            {% if completed_records %}
+                <ul>
+                    <div class="table">
+                        <table class="table table-bordered border-primary table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" scope="col" style="width: 12%;">Дата и время записи вывода в ремонт/допуска бригады</th>
+                                    <th class="text-center" scope="col" style="width: 38%;">Содержание записи о выводе в ремонт/допуска бригады</th>
+                                    <th class="text-center" scope="col" style="width: 12%;">Дата и время записи ввода в работу/окончания работ</th>
+                                    <th class="text-center" scope="col" style="width: 38%;">Содержание записи о вводе в работу/окончании работ</th>
+                                </tr>
+                            </thead>
+                            {% for disabling in completed_records %}
+                                <tbody>
+                                    <tr>
+                                        <td>{{ disabling.important_event_date_start }}</td>
+                                        <td>{{ disabling.text }}<br>
+                                            {% if disabling.files.all %}
+                                                Прикрепленные файлы:
+                                                {% for file in disabling.files.all %}
+                                                    <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a>
+                                                    {% if not forloop.last %}, {% endif %}
+                                                {% endfor %}<br>
+                                            {% endif %}
+                                            {{ disabling.user_signature }}
+                                        </td>
+                                        <td>{{ disabling.important_event_date_over }}</td>
+                                        <td>
+                                            {% for entry in disabling.closing_entry.all %}
+                                                {{ entry.text }}<br>
+                                                {% if entry.files.all %}
+                                                    Прикрепленные файлы:
+                                                    {% for file in entry.files.all %}
+                                                        <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a>
+                                                        {% if not forloop.last %}, {% endif %}
+                                                    {% endfor %}<br>
+                                                {% endif %}
+                                                {{ entry.user_signature }}
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </ul>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+
+
+
   </div>
 </div>
 
@@ -399,12 +457,12 @@
     <tbody>
       {% for post in model_op_journal_data %}
         <tr>
-          <td class="clickable-cell {% if post.emergency_event and not post.short_circuit %}bg-danger text-white{% elif not post.emergency_event and post.short_circuit %}bg-primary text-white{% elif post.emergency_event and post.short_circuit %}bg-warning border border-primary text-white{% endif %} text-wrap" onclick="window.location.href='{% url 'op_journal_edit' post.pk %}'">
+          <td class="clickable-cell {% if post.emergency_event and not post.short_circuit %}bg-danger text-white{% elif not post.emergency_event and post.short_circuit %}bg-primary text-white{% elif post.emergency_event and post.short_circuit %}bg-warning border border-primary text-white{% endif %} text-wrap" onclick=window.location.href="{% url 'op_journal_edit' post.pk %}">
             {{ post.pub_date }}
           </td>
           <td class="{% if post.special_regime_introduced %}border border-danger border-5{% endif %}">
             {% if post.entry_is_valid == False %}
-            ОШИБОЧНАЯ ЗАПИСЬ!<br><strike>{{ post.text }}<br>
+            ОШИБОЧНАЯ ЗАПИСЬ!<br><s>{{ post.text }}<br>
             {% if post.files.all %}
               Прикрепленные файлы:
               {% for file in post.files.all %}
@@ -413,7 +471,7 @@
               {% endfor %}
               <br>
             {% endif %}
-            {{ post.user_signature }}</strike>
+            {{ post.user_signature }}</s>
             {% else %}
             {{ post.text }}<br>
             {% if post.files.all %}

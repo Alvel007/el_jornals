@@ -50,9 +50,9 @@ class СommentOPJ(models.Model):
 class MainPageOPJournal(models.Model):
     text = models.TextField(verbose_name='Содержание')
     real_date = models.DateTimeField(default=timezone.now,
-                                     verbose_name='Время создания записи пользователем',
-                                     editable=False)
-    pub_date = models.DateTimeField(verbose_name='Время выполнения действия')
+                                     verbose_name='Время создания записи пользователем')
+    pub_date = models.DateTimeField(default=timezone.now,
+                                    verbose_name='Время выполнения действия')
     substation = models.ForeignKey(Substation,
                                    verbose_name='Подстанция',
                                    on_delete=models.PROTECT,
@@ -70,6 +70,14 @@ class MainPageOPJournal(models.Model):
                                 related_name='comment')
     entry_is_valid = models.BooleanField(verbose_name='Запись верна',
                                          default=True)
+    withdrawal_for_repair = models.BooleanField(verbose_name='Запись о выводе оборудования из работы',
+                                                default=False)
+    planned_completion_date = models.DateTimeField(default=timezone.now,
+                                                   verbose_name='Планируемая дата ввода в работу',
+                                                   blank=True,
+                                                   null=True)
+    permission_to_work = models.BooleanField(verbose_name='Запись о допуске к выполнению работ',
+                                             default=False)
     special_regime_introduced = models.BooleanField(verbose_name='Ввод особого режима (ОРР, РПГ, РВР)',
                                                     default=False)
     emergency_event = models.BooleanField(verbose_name='Аварийное событие',
@@ -79,27 +87,17 @@ class MainPageOPJournal(models.Model):
     user_signature = models.CharField(verbose_name='Подпись пользователя',
                                       max_length=255,
                                       blank=True,
-                                      null=True,
-                                      editable=False)
-    important_event_date_start = models.DateTimeField(verbose_name='Вывод в ремонт/допуск бригады',
-                                                    default=None,
-                                                    blank=True,
-                                                    null=True)
-    important_event_date_over = models.DateTimeField(verbose_name='Ввод в работу/окончание работ, допущенной бригады',
-                                                    default=None,
-                                                    blank=True,
-                                                    null=True)
+                                      null=True,)
     closing_entry = models.ManyToManyField('self',
                                             blank=True,
                                             default=None,
                                             verbose_name='Закрыта записью',
                                             help_text='Выберете связанную запись, исключающую текущую запись из отклонений',)   
 
-
     class Meta:
         verbose_name = 'Запись опер. журнала'
         verbose_name_plural = 'Записи опер. журналов'
-        
+
     def save(self, *args, **kwargs):
         if not self.pk:
             first_initial = self.user.first_name[0] if self.user.first_name else ''
@@ -115,21 +113,32 @@ class MainPageOPJournal(models.Model):
         moscow_timezone = pytz.timezone('Europe/Moscow')
         self.real_date = self.real_date.astimezone(moscow_timezone)
         self.pub_date = self.pub_date.astimezone(moscow_timezone)
+        self.planned_completion_date = self.planned_completion_date.astimezone(moscow_timezone)
         super().save(*args, **kwargs)
 
     def __str__(self):
-        pub_date_formatted = self.pub_date.strftime('%Y-%m-%d %H:%M')
         return self.text
 
 
 class AutocompleteOption(models.Model):
-    text = models.CharField(max_length=4096,
-                            verbose_name='Текст автозаполнения')
+    text = models.TextField(verbose_name='Текст автозаполнения')
     substation = models.ManyToManyField(Substation,
                                         verbose_name='Для подстанции',
                                         default=None,
                                         blank=False,
                                         related_name='for_substation')
+    out_of_work = models.BooleanField(verbose_name='Запись о допуске к работам',
+                                      default=False,
+                                      blank=True, null=True)
+    getting_started = models.BooleanField(verbose_name='Запись об окончании работ',
+                                          default=False,
+                                          blank=True, null=True)
+    disabling = models.BooleanField(verbose_name='Запись о выводе в ремонт/отключении',
+                                    default=False,
+                                    blank=True, null=True)
+    enabling = models.BooleanField(verbose_name='Запись о включении оборудования',
+                                   default=False,
+                                   blank=True, null=True)
 
     def __str__(self):
         return self.text

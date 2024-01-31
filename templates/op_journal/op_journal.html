@@ -13,7 +13,7 @@
   }
   #id_text {
     width: 100%;
-    height: 4em;
+    height: 6em;
     word-wrap: break-word;
   }
   #autocomplete-text {
@@ -38,37 +38,117 @@
 </style>
 
 <script type="text/javascript">
-  console.log(autocompleteUrl);
-  $(function() {
-      var autocompleteUrl = $('#id_text').data('autocomplete-url'); // Получаем URL из данных поля
-      $('#id_text').autocomplete({
-          source: function(request, response) {
-              // Проверяем длину введенной строки
-              if (request.term.length > 10) {
-                  // Если строка больше 10 символов, не отправляем запрос
-                  // и очищаем список автодополнения, затем прерываем выполнение
-                  response([]);
-                  return false; // Прерываем выполнение функции
-              }
-              // AJAX-запрос отправляется только если строка меньше или равна 10 символам
-              $.ajax({
-                  url: autocompleteUrl,
-                  data: {
-                      term: request.term
-                  },
-                  dataType: 'json',
-                  success: function(data) {
-                      response(data);
-                  }
-              });
-          },
-          minLength: 2,  // Минимальная длина строки для начала поиска
-          select: function(event, ui) {
-              $('#id_text').val(ui.item.value);
-              return false;
-          }
-      });
+$(function() {
+  var autocompleteUrl = $('#id_text').data('autocomplete-url'); // Получаем URL из данных поля
+
+  $('#id_text').autocomplete({
+    minLength: 3, // минимальное количество символов для начала поиска
+    select: function(event, ui) {
+      $('#id_text').val(ui.item.value);
+      if (ui.item.out_of_work) {
+        $('#important_event_checkbox').prop('checked', true);
+        if (!ui.item.errors) {
+          $('#planned_completion_date_block').show(); // Показываем блок
+        }
+      } else {
+        $('#important_event_checkbox').prop('checked', false);
+        if (!ui.item.errors) {
+          $('#planned_completion_date_block').show(); // Показываем блок
+        }
+      }
+
+      if (ui.item.enabling) {
+        $('#collapseExample7').collapse('show');
+      } else {
+        $('#collapseExample7').collapse('hide');
+      }
+
+      if (ui.item.getting_started) {
+        $('#collapseExample12').collapse('show');
+      } else {
+        $('#collapseExample12').collapse('hide');
+      }
+
+      return false;
+    },
+    search: function(event, ui) {
+      if ($('#id_text').val().length < 3 || $('#id_text').val().length > 10) {
+        return false; // прекращаем поиск, если количество символов не соответствует требованиям
+      }
+    }
+  }).data("ui-autocomplete")._renderItem = function(ul, item) {
+    var listItem = $("<li>").text(item.label);
+    if (item.out_of_work) {
+      listItem.append(" (Out of work)");
+    }
+    return listItem.appendTo(ul);
+  };
+
+  $('#id_text').on('autocompleteselect', function(event, ui) {
+    if (ui.item.out_of_work) {
+      $('#important_event_checkbox').prop('checked', true);
+      if (!ui.item.errors) {
+        $('#planned_completion_date_block').show(); // Показываем блок
+      }
+    } else {
+      $('#important_event_checkbox').prop('checked', false);
+      if (!ui.item.errors) {
+        $('#planned_completion_date_block').show(); // Показываем блок
+      }
+    }
+
+    if (ui.item.enabling) {
+      $('#collapseExample7').collapse('show');
+    } else {
+      $('#collapseExample7').collapse('hide');
+    }
+
+    if (ui.item.getting_started) {
+      $('#collapseExample12').collapse('show');
+    } else {
+      $('#collapseExample12').collapse('hide');
+    }
   });
+  $('#id_text').keydown(function(e) {
+    if (e.which == 13 && !e.shiftKey) {
+      e.preventDefault();
+      var cursorPosition = this.selectionStart;
+      var textBefore = $(this).val().substring(0, cursorPosition);
+      var textAfter = $(this).val().substring(cursorPosition);
+      $(this).val(textBefore + "\n" + textAfter);
+      this.selectionStart = this.selectionEnd = cursorPosition + 1;
+    }
+  });
+
+  // Дополнительный код для скрытия блока при первой загрузке
+  var plannedCompletionDateBlock = $('#planned_completion_date_block');
+  plannedCompletionDateBlock.hide(); // Скрываем блок
+
+  // Обработчик изменения состояния чекбокса
+  $('#important_event_checkbox').on('change', function() {
+    if (this.checked) {
+      plannedCompletionDateBlock.show(); // Показываем блок
+    } else {
+      plannedCompletionDateBlock.hide(); // Скрываем блок
+    }
+  });
+
+  // Добавляем проверку на состояние флажка important_event_checkbox при разворачивании collapseExample7
+  $('#collapseExample7').on('show.bs.collapse', function () {
+    if ($('#important_event_checkbox').is(':checked')) {
+      return false; // Блокируем разворачивание
+    }
+  });
+});
+</script>
+
+<script>
+document.getElementById('id_text').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    this.value += '\n';
+    e.preventDefault();
+  }
+});
 </script>
 
 <div class="d-flex justify-content-center">
@@ -102,10 +182,16 @@
     <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample3" aria-expanded="false" aria-controls="collapseExample2">
       Выгрузить записи
     </button>
-    <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample4" aria-expanded="false" aria-controls="collapseExample3">
+    <button class="btn btn-warning" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample4" aria-expanded="false" aria-controls="collapseExample3">
       Отклонения от исходной схемы
     </button>
-    <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample9" aria-expanded="false" aria-controls="collapseExample3">
+    <button class="btn btn-warning" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample10" aria-expanded="false" aria-controls="collapseExample10">
+      Работающие бригады
+    </button>
+    <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample9" aria-expanded="false" aria-controls="collapseExample3">
+      Введённое оборудование
+    </button>
+    <button class="btn btn-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample11" aria-expanded="false" aria-controls="collapseExample3">
       Законченные работы
     </button>
   </p>
@@ -144,36 +230,40 @@
       <div class="d-flex justify-content-center"><h2>{{ substation.name }}</h2></div>
       <ul>
         <hr class="w-100">
-        <div class="table-responsive">
-          <table class="table table-bordered border-primary table-hover">
+        <div class="table-responsive"style="width: 95%;">
+          <table class="table table-bordered border-primary table-hover" style="width: 100%;">
             <thead>
-                <tr>
-                    <th class="text-center" scope="col">Дата и время вывода оборудования в ремонт/допуска персонала</th>
-                    <th class="text-center" scope="col">Содержание записи о выводе в ремонт оборудования/допуске персонала</th>
-                </tr>
+              <tr>
+                <th class="text-center" scope="col">Дата и время вывода оборудования в ремонт/отключения</th>
+                <th class="text-center" scope="col">Содержание записи о выводе в ремонт оборудования/отключении</th>
+                <th class="text-center" scope="col">Планируемая дата ввода оборудования в работу</th>
+              </tr>
             </thead>
             <tbody>
-                {% for repair in filtered_model_op_journal_data %}
+              {% for repair in filtered_model_op_journal_data %}
                 <tr>
-                    <td>
-                        {{ repair.pub_date }}
-                    </td>
-                    <td class="{% if repair.special_regime_introduced %}border border-danger border-5{% endif %}">
-                        {{ repair.text }}<br>
-                        {% if repair.files.all %}
-                          Прикрепленные файлы:
-                          {% for file in repair.files.all %}
-                            <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a>
-                            {% if not forloop.last %}, {% endif %}
-                          {% endfor %}
-                          <br>
-                        {% endif %}
-                        {{ repair.user_signature }}
-                    </td>
+                  <td class="clickable-cell text-wrap" onclick=window.location.href="{% url 'op_journal_edit' repair.pk %}">
+                    {{ repair.pub_date }}
+                  </td>
+                  <td class="{% if repair.special_regime_introduced %}border border-danger border-5{% endif %}">
+                    {{ repair.text }}<br>
+                    {% if repair.files.all %}
+                      Прикрепленные файлы:
+                      {% for file in repair.files.all %}
+                        <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a>
+                        {% if not forloop.last %}, {% endif %}
+                      {% endfor %}
+                      <br>
+                    {% endif %}
+                    {{ repair.user_signature }}
+                  </td>
+                  <td class="{% if repair.is_past_due %}bg-danger text-white{% elif repair.is_close_to_completion %}bg-warning text-white{% endif %}">
+                    {{ repair.planned_completion_date }} 
+                  </td>
                 </tr>
-                {% endfor %}
+              {% endfor %}
             </tbody>
-        </table>
+          </table>
         </div>
       </ul>
       {% if substation.dispatch_point %}
@@ -181,18 +271,20 @@
           <div class="d-flex justify-content-center"><h2>{{ substation_name }}</h2></div>  
           {% if substation_records %}  
               <ul>  
-                  <div class="table-responsive">  
+                <div class="table-responsive"style="width: 95%;">
                       <table class="table table-bordered border-primary table-hover">  
                           <thead>  
                               <tr>  
-                                  <th class="text-center" scope="col">Дата и время вывода оборудования в ремонт/допуска персонала</th>  
-                                  <th class="text-center" scope="col">Содержание записи о выводе в ремонт оборудования/допуске персонала</th>  
+                                  <th class="text-center" scope="col">Дата и время вывода оборудования в ремонт/отключения</th>  
+                                  <th class="text-center" scope="col">Содержание записи о выводе в ремонт оборудования/отключении</th>  
+                                  <th class="text-center" scope="col">Планируемая дата ввода оборудования в работу</th>
                               </tr>  
                           </thead>  
                           <tbody>  
                               {% for record in substation_records %}  
-                                  <tr>  
-                                      <td>{{ record.pub_date }}</td>  
+                                <tr>
+                                  <td class="clickable-cell text-wrap" onclick=window.location.href="{% url 'op_journal_edit' record.pk %}">
+                                          {{ record.pub_date }}</td>  
                                       <td class="{% if record.special_regime_introduced %}border border-danger border-5{% endif %}">  
                                           {{ record.text }}<br>
                                           {% if record.files.all %}
@@ -204,7 +296,10 @@
                                             <br>
                                           {% endif %}
                                           {{ record.user_signature }}  
-                                      </td>  
+                                      </td>
+                                      <td class="{% if record.is_past_due %}bg-danger text-white{% elif record.is_close_to_completion %}bg-warning text-white{% endif %}">
+                                        {{ record.planned_completion_date }}
+                                      </td>
                                   </tr>  
                               {% endfor %}  
                           </tbody>  
@@ -217,23 +312,23 @@
     </div>
   </div>
   <div class="collapse" id="collapseExample9">
-    <div class="d-flex justify-content-center"><h2>Завершенные работы за последние {{ RETENTION_PERIOD_COMPLETED_RECORDS }} дней</h2></div>  
-    <div class="d-flex justify-content-center"><h2>{{ substation.name }}.</h2></div>  
+    <div class="d-flex justify-content-center"><h2>Введённое оборудование за последние {{ RETENTION_PERIOD_COMPLETED_RECORDS }} дней</h2></div>  
+    <div class="d-flex justify-content-center"><h2>{{ substation.name }}</h2></div>  
     <ul>  
         <div class="table">  
             <table class="table table-bordered border-primary table-hover">  
                 <thead>  
                   <tr>  
-                      <th class="text-center" scope="col" style="width: 12%;">Дата и время записи вывода в ремонт/допуска бригады</th>  
-                      <th class="text-center" scope="col" style="width: 38%;">Содержание записи о выводе в ремонт/допуска бригады</th> 
-                      <th class="text-center" scope="col" style="width: 12%;">Дата и время записи ввода в работу/окончания работ</th>  
-                      <th class="text-center" scope="col" style="width: 38%;">Содержание записи о вводе в работу/окончании работ</th>
+                      <th class="text-center" scope="col" style="width: 12%;">Дата и время записи вывода в ремонт/отключения</th>  
+                      <th class="text-center" scope="col" style="width: 38%;">Содержание записи о выводе в ремонт/отключении</th> 
+                      <th class="text-center" scope="col" style="width: 12%;">Дата и время записи ввода в работу оборудования</th>  
+                      <th class="text-center" scope="col" style="width: 38%;">Содержание записи о вводе в работу оборудования</th>
                   </tr>
                 </thead>  
                 {% for disabling in disabling_model_op_journal_data %}  
                 <tbody>  
                         <tr>  
-                            <td>{{ disabling.important_event_date_start }}</td>
+                            <td>{{ disabling.pub_date }}</td>
                             <td>{{ disabling.text }}<br>
                                 {% if disabling.files.all %}
                                 Прикрепленные файлы:
@@ -243,9 +338,9 @@
                                 {% endfor %}<br>
                                 {% endif %}
                                 {{ disabling.user_signature }}</td>
-                            <td>{{ disabling.important_event_date_over }}</td>
                             <td>{% for entry in disabling.closing_entry.all %}
-                                    {{ entry.text }}<br>
+                                {{ entry.pub_date }}</td>
+                            <td>{{ entry.text }}<br>
                                       {% if entry.files.all %}
                                     Прикрепленные файлы:
                                       {% for file in entry.files.all %}
@@ -280,7 +375,7 @@
                             {% for disabling in completed_records %}
                                 <tbody>
                                     <tr>
-                                        <td>{{ disabling.important_event_date_start }}</td>
+                                        <td>{{ disabling.pub_date }}</td>
                                         <td>{{ disabling.text }}<br>
                                             {% if disabling.files.all %}
                                                 Прикрепленные файлы:
@@ -291,9 +386,9 @@
                                             {% endif %}
                                             {{ disabling.user_signature }}
                                         </td>
-                                        <td>{{ disabling.important_event_date_over }}</td>
+                                        <td> {% for entry in disabling.closing_entry.all %}
+                                          {{ entry.pub_date }}</td>
                                         <td>
-                                            {% for entry in disabling.closing_entry.all %}
                                                 {{ entry.text }}<br>
                                                 {% if entry.files.all %}
                                                     Прикрепленные файлы:
@@ -314,6 +409,194 @@
             {% endif %}
         {% endfor %}
     {% endif %}
+  </div>
+
+  <div class="collapse" id="collapseExample11">
+    <div class="d-flex justify-content-center"><h2>Завершённые работы за последние {{ RETENTION_PERIOD_COMPLETED_RECORDS }} дней</h2></div>  
+    <div class="d-flex justify-content-center"><h2>{{ substation.name }}</h2></div>  
+    <ul>  
+        <div class="table">  
+            <table class="table table-bordered border-primary table-hover">  
+                <thead>  
+                  <tr>  
+                      <th class="text-center" scope="col" style="width: 12%;">Дата и время записи о начале работ</th>  
+                      <th class="text-center" scope="col" style="width: 38%;">Содержание записи о начале выполнения работ</th> 
+                      <th class="text-center" scope="col" style="width: 12%;">Дата и время записи об окончании работ</th>  
+                      <th class="text-center" scope="col" style="width: 38%;">Содержание записи об окончании работ</th>
+                  </tr>
+                </thead>  
+                {% for disabling in worked_model_op_journal_data %}  
+                <tbody>  
+                        <tr>  
+                            <td>{{ disabling.pub_date }}</td>
+                            <td>{{ disabling.text }}<br>
+                                {% if disabling.files.all %}
+                                Прикрепленные файлы:
+                                  {% for file in disabling.files.all %}
+                                    <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a>
+                                    {% if not forloop.last %}, {% endif %}
+                                {% endfor %}<br>
+                                {% endif %}
+                                {{ disabling.user_signature }}</td>
+                            <td>{% for entry in disabling.closing_entry.all %}
+                                {{ entry.pub_date }}</td>
+                            <td>{{ entry.text }}<br>
+                                      {% if entry.files.all %}
+                                    Прикрепленные файлы:
+                                      {% for file in entry.files.all %}
+                                        <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a>
+                                        {% if not forloop.last %}, {% endif %}
+                                    {% endfor %}<br>
+                                    {% endif %}
+                                    {{ entry.user_signature }}
+                                {% endfor %}</td>
+                        </tr>
+                </tbody> 
+                {% endfor %} 
+            </table>  
+        </div>  
+    </ul>
+
+    {% if substation.dispatch_point %}
+        {% for substation_name, completed_records in compl_worked_records_by_substation.items %}
+            <div class="d-flex justify-content-center"><h2>{{ substation_name }}</h2></div>
+            {% if completed_records %}
+                <ul>
+                    <div class="table">
+                        <table class="table table-bordered border-primary table-hover">
+                            <thead>
+                                <tr>
+                                    <th class="text-center" scope="col" style="width: 12%;">Дата и время записи вывода в ремонт/допуска бригады</th>
+                                    <th class="text-center" scope="col" style="width: 38%;">Содержание записи о выводе в ремонт/допуска бригады</th>
+                                    <th class="text-center" scope="col" style="width: 12%;">Дата и время записи ввода в работу/окончания работ</th>
+                                    <th class="text-center" scope="col" style="width: 38%;">Содержание записи о вводе в работу/окончании работ</th>
+                                </tr>
+                            </thead>
+                            {% for disabling in completed_records %}
+                                <tbody>
+                                    <tr>
+                                        <td>{{ disabling.pub_date }}</td>
+                                        <td>{{ disabling.text }}<br>
+                                            {% if disabling.files.all %}
+                                                Прикрепленные файлы:
+                                                {% for file in disabling.files.all %}
+                                                    <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a>
+                                                    {% if not forloop.last %}, {% endif %}
+                                                {% endfor %}<br>
+                                            {% endif %}
+                                            {{ disabling.user_signature }}
+                                        </td>
+                                        <td> {% for entry in disabling.closing_entry.all %}
+                                          {{ entry.pub_date }}</td>
+                                        <td>
+                                                {{ entry.text }}<br>
+                                                {% if entry.files.all %}
+                                                    Прикрепленные файлы:
+                                                    {% for file in entry.files.all %}
+                                                        <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a>
+                                                        {% if not forloop.last %}, {% endif %}
+                                                    {% endfor %}<br>
+                                                {% endif %}
+                                                {{ entry.user_signature }}
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </ul>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+  </div>
+</div>
+
+
+    <div class="collapse" id="collapseExample10">
+      <div class="card card-body">
+        <div class="d-flex justify-content-center">
+          <h2>Текущие работы</h2>
+        </div>
+        <div class="d-flex justify-content-center">
+          <h2>{{ substation.name }}</h2>
+        </div>
+        <ul>
+          <hr class="w-100">
+          <div class="table-responsive">
+            <table class="table table-bordered border-primary table-hover">
+              <thead>
+                <tr>
+                  <th class="text-center" scope="col">Дата и время начала<br>выполнения работ</th>
+                  <th class="text-center" scope="col">Содержание записи о допуске персонала</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for repair in works_model_op_journal_data %}
+                <tr>
+                  <td>
+                    {{ repair.pub_date }}
+                  </td>
+                  <td class="{% if repair.special_regime_introduced %}border border-danger border-5{% endif %}">
+                    {{ repair.text }}<br>
+                    {% if repair.files.all %}
+                    Прикрепленные файлы:
+                    {% for file in repair.files.all %}
+                    <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a>
+                    {% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                    <br>
+                    {% endif %}
+                    {{ repair.user_signature }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </ul>
+        {% if substation.dispatch_point %}
+        {% for substation_name, substation_records in work_by_substation.items %}  
+          <div class="d-flex justify-content-center"><h2>{{ substation_name }}</h2></div>  
+          {% if substation_records %}  
+              <ul>  
+                  <div class="table-responsive">  
+                      <table class="table table-bordered border-primary table-hover">  
+                          <thead>  
+                              <tr>  
+                                  <th class="text-center" scope="col">Дата и время начала<br>выполнения работ</th>  
+                                  <th class="text-center" scope="col">Содержание записи о допуске персонала</th>  
+                              </tr>  
+                          </thead>  
+                          <tbody>  
+                              {% for record in substation_records %}  
+                                  <tr>  
+                                      <td>{{ record.pub_date }}</td>  
+                                      <td class="{% if record.special_regime_introduced %}border border-danger border-5{% endif %}">  
+                                          {{ record.text }}<br>
+                                          {% if record.files.all %}
+                                            Прикрепленные файлы:
+                                            {% for file in record.files.all %}
+                                              <a href="{{ file.file.url }}" target="_blank">{{ file.file.name|cut:"OPJ/" }}</a>
+                                              {% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                            <br>
+                                          {% endif %}
+                                          {{ record.user_signature }}  
+                                      </td>  
+                                  </tr>  
+                              {% endfor %}  
+                          </tbody>  
+                      </table>  
+                  </div>  
+              </ul>  
+        {% endif %}  
+      {% endfor %}
+      {% endif %}
+
+
+      </div>
+    </div>
 
 
 
@@ -347,6 +630,15 @@
               {% endfor %}
           </div>
       {% endif %}
+      <div class="error-message">
+        {% if form.planned_completion_date.errors %}
+        <ul class="errorlist" style="color: red;">
+        {% for error in form.planned_completion_date.errors %}
+            <span>{{ error }}</span>
+          {% endfor %}
+        </ul>  
+        {% endif %}
+      </div>
       {% if form.file.errors %}
           <ul class="errorlist" style="color: red;">
               {% for error in form.file.errors %}
@@ -357,29 +649,59 @@
   </div>
 
 
+  <div class="row">
     <div class="btn-group-toggle" data-toggle="buttons">
-    <p>
-      <label class="btn btn-primary">
-        <input type="checkbox" id="important_event_checkbox" name="important_event_checkbox">
-        Вывод в ремонт/допуск бригады
-      </label>
-      <a class="btn btn-primary" data-bs-toggle="collapse" href="#collapseExample7" role="button" aria-expanded="false" aria-controls="collapseExample">
-        Оборудование введено/работы окончены
-      </a>
-      <a class="btn btn-primary" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
-        Добавить особые параметры
-      </a>
-      <a class="btn btn-primary" data-bs-toggle="collapse" href="#collapseExample6" role="button" aria-expanded="false" aria-controls="collapseExample">
-        Загрузить доп. материалы
-      </a>
-    </p>
+      <p>
+        <label class="btn btn-primary" style="width: 270px;">
+          <input type="checkbox" id="important_event_checkbox" name="important_event_checkbox" {% if request.POST.important_event_checkbox %} checked {% endif %}>
+          Вывод из работы/отключение
+        </label>
+        <label class="btn btn-primary" style="width: 270px;">
+          <input type="checkbox" id="permission_to_work_checkbox" name="permission_to_work_checkbox">
+          Допуск к выполнению работ
+        </label>
+      </p>
+    </div>
+  </div>
+  <div class="mb-3" id="planned_completion_date_block" style="display: none;">
+    <label for="id_planned_completion_date" class="form-label">Планируемые дата/время ввода оборудования в работу:</label>
+    {{form.planned_completion_date}}
+  </div>
+  <div class="row mt-2">
+    <div class="btn-group-toggle" data-toggle="buttons">
+      <p>
+        <a class="btn btn-primary" style="width: 270px;" id="existing_entry"  data-bs-toggle="collapse" href="#collapseExample7" role="button" aria-expanded="false" aria-controls="collapseExample7"> 
+          Ввод в работу оборудования 
+        </a>
+        <a class="btn btn-primary" style="width: 270px;" id="work_entry" data-bs-toggle="collapse" href="#collapseExample12" role="button" aria-expanded="false" aria-controls="collapseExample">
+          Окончание работ
+        </a>
+        <a class="btn btn-primary" style="width: 270px;" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+          Добавить особые параметры
+        </a>
+        <a class="btn btn-primary" style="width: 270px;" data-bs-toggle="collapse" href="#collapseExample6" role="button" aria-expanded="false" aria-controls="collapseExample">
+          Загрузить доп. материалы
+        </a>
+      </p>
+    </div>
+  </div>
+  
+  <div class="collapse" id="collapseExample7"> 
+    <div class="card card-body"> 
+      <p>
+        Выберите из выпадающего списка запись, касающуюся <span style="color: red;">ВЫВОДА ОБОРУДОВАНИЯ ИЗ РАБОТЫ</span>, для исключения ее из отклонений.
+      </p>
+      {{form.existing_entry}} 
+    </div>
   </div>
 
-  <div class="collapse" id="collapseExample7">
-    <div class="card card-body">
-      Выберите из выпадающего списка запись, касающуюся вывода оборудования (допуска бригады), для исключения ее из отклонений. <br>
-      {{form.existing_entry}}
-    </div>
+  <div class="collapse" id="collapseExample12"> 
+    <div class="card card-body"> 
+      <p>
+        Выберите из выпадающего списка запись, касающуюся вывода <span style="color: red;">ДОПУСКА В ВЫПОЛНЕНИЮ РАБОТ</span>, для исключения ее из отклонений.
+      </p>
+      {{form.work_entry}} 
+    </div> 
   </div>
 
     <div class="collapse" id="collapseExample">
@@ -462,7 +784,7 @@
           </td>
           <td class="{% if post.special_regime_introduced %}border border-danger border-5{% endif %}">
             {% if post.entry_is_valid == False %}
-            ОШИБОЧНАЯ ЗАПИСЬ!<br><s>{{ post.text }}<br>
+            ОШИБОЧНАЯ ЗАПИСЬ!<br><s>{{ post.text|linebreaksbr }}<br>
             {% if post.files.all %}
               Прикрепленные файлы:
               {% for file in post.files.all %}
@@ -473,7 +795,7 @@
             {% endif %}
             {{ post.user_signature }}</s>
             {% else %}
-            {{ post.text }}<br>
+            {{ post.text|linebreaksbr }}<br>
             {% if post.files.all %}
               Прикрепленные файлы:
               {% for file in post.files.all %}

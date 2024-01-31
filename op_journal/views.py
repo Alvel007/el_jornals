@@ -50,7 +50,7 @@ from django.contrib import messages
 
 
 from op_journal.models import MainPageOPJournal, AutocompleteOption, FileModelOPJ
-from el_journals.settings import NUMBER_ENTRIES_OP_LOG_PAGE, STATICFILES_DIRS, STATIC_URL, MEDIA_URL, MEDIA_ROOT, TOTAL_VISIBLE_RECORDS_OPJ, RETENTION_PERIOD_COMPLETED_RECORDS
+from el_journals.settings import NUMBER_ENTRIES_OP_LOG_PAGE, STATICFILES_DIRS, STATIC_URL, MEDIA_URL, MEDIA_ROOT, TOTAL_VISIBLE_RECORDS_OPJ, RETENTION_PERIOD_COMPLETED_RECORDS, ISSUANCE_OF_CONFIRMATION, SIGNAL_ON_REQUEST
 from .forms import MainPageOPJournalForm, OPJournalForm, CommentOPJForm
 from substation.models import Substation
 
@@ -67,7 +67,10 @@ def op_journal_detail(request, pk):
 @login_required(login_url='/login/')
 def op_journal_edit(request, pk):
     op_journal_entry = get_object_or_404(MainPageOPJournal, pk=pk)
-    if request.user == op_journal_entry.user:
+    
+    user_has_operational_staff = request.user.operational_staff.filter(id=op_journal_entry.substation.id).exists()
+    
+    if user_has_operational_staff:
         if op_journal_entry.entry_is_valid:
             if request.method == "POST":
                 form = OPJournalForm(request.POST, instance=op_journal_entry)
@@ -80,13 +83,12 @@ def op_journal_edit(request, pk):
                     op_journal_entry.save()
                     closing_entry = op_journal_entry.closing_entry.first()
                     if closing_entry:
-                        closing_entry.important_event_date_over = None
-                        closing_entry.save()
-                    op_journal_entry.closing_entry.clear()
-                    
+                        op_journal_entry.closing_entry.clear()
+                        closing_entry = None
                     return HttpResponseRedirect(reverse('sub_op_journal', kwargs={'substation_slug': op_journal_entry.substation.slug}))
             else:
-                form = OPJournalForm(instance=op_journal_entry)
+                initial_data = {'planned_completion_date': timezone.localtime(op_journal_entry.planned_completion_date).strftime('%Y-%m-%dT%H:%M')}
+                form = OPJournalForm(instance=op_journal_entry, initial=initial_data)
             return render(request, 'op_journal/op_journal_edit.html', {'op_journal_entry': op_journal_entry, 'form': form})
         else:
             return redirect('op_journal_detail', pk=pk)
@@ -169,8 +171,8 @@ class OpJournalView(ListView, FormView):
                 dispatcher_records = MainPageOPJournal.objects.filter(
                     substation__in=substation.dispatcher_for.all(),
                     entry_is_valid=True,
-                    important_event_date_start__isnull=False,
-                    important_event_date_over__isnull=True
+                    withdrawal_for_repair=True,
+                    closing_entry=None
                 ).order_by('-pub_date', '-id')
                 records_by_substation = {}
                 for record in dispatcher_records:
@@ -179,36 +181,92 @@ class OpJournalView(ListView, FormView):
                         records_by_substation[substation_name] = []
                     records_by_substation[substation_name].append(record)
                 context['records_by_substation'] = records_by_substation
+                now = timezone.now()
+                for record in dispatcher_records:
+                    time_difference = record.planned_completion_date - now
+                    record.is_close_to_completion = time_difference.total_seconds() < SIGNAL_ON_REQUEST * 3600
+                    record.is_past_due = time_difference.total_seconds() < 0
+                context['records_by_substation'] = records_by_substation
 
+
+                disp_work_records = MainPageOPJournal.objects.filter(
+                    substation__in=substation.dispatcher_for.all(),
+                    entry_is_valid=True,
+                    permission_to_work=True,
+                    closing_entry=None
+                ).order_by('-pub_date', '-id')
+                work_by_substation = {}
+                for record in disp_work_records:
+                    substation_name = record.substation.name
+                    if substation_name not in work_by_substation:
+                        work_by_substation[substation_name] = []
+                    work_by_substation[substation_name].append(record)
+                context['work_by_substation'] = work_by_substation
+ 
                 completed_records_by_substation = {}
                 for dispatcher in substation.dispatcher_for.all():
                     completed_records = MainPageOPJournal.objects.filter(
                         substation=dispatcher,
                         entry_is_valid=True,
-                        important_event_date_start__isnull=False,
-                        important_event_date_over__isnull=False,
-                        important_event_date_over__gte=datetime.now() - timedelta(days=RETENTION_PERIOD_COMPLETED_RECORDS)
-                    ).order_by('-important_event_date_start', '-id')
+                        withdrawal_for_repair=True
+                    ).filter(
+                        Q(closing_entry__isnull=False) | Q(closing_entry__pub_date__lte=datetime.now() - timedelta(days=RETENTION_PERIOD_COMPLETED_RECORDS))
+                    ).order_by('-closing_entry__pub_date', '-id')
                     if completed_records.exists():
                         completed_records_by_substation[dispatcher.name] = completed_records
                 context['completed_records_by_substation'] = completed_records_by_substation
 
+                compl_worked_records_by_substation = {}
+                for dispatcher in substation.dispatcher_for.all():
+                    compl_worked_records = MainPageOPJournal.objects.filter(
+                        substation=dispatcher,
+                        entry_is_valid=True,
+                        permission_to_work=True
+                    ).filter(
+                        Q(closing_entry__isnull=False) | Q(closing_entry__pub_date__lte=datetime.now() - timedelta(days=RETENTION_PERIOD_COMPLETED_RECORDS))
+                    ).order_by('-closing_entry__pub_date', '-id')
+                    if compl_worked_records.exists():
+                        compl_worked_records_by_substation[dispatcher.name] = compl_worked_records
+                context['compl_worked_records_by_substation'] = compl_worked_records_by_substation
+
             filtered_records = MainPageOPJournal.objects.filter(
                 substation=substation,
                 entry_is_valid=True,
-                important_event_date_start__isnull=False,
-                important_event_date_over__isnull=True
+                withdrawal_for_repair=True,
+                closing_entry=None
             ).order_by('-pub_date', '-id')
+            now = timezone.now()
+            for record in filtered_records:
+                time_difference = record.planned_completion_date - now
+                record.is_close_to_completion = time_difference.total_seconds() < SIGNAL_ON_REQUEST * 3600
+                record.is_past_due = time_difference.total_seconds() < 0
             context['filtered_model_op_journal_data'] = filtered_records
+
+            works_records = MainPageOPJournal.objects.filter(
+                substation=substation,
+                entry_is_valid=True,
+                permission_to_work=True,
+                closing_entry=None
+            ).order_by('-pub_date', '-id')
+            context['works_model_op_journal_data'] = works_records
 
             disabling_records = MainPageOPJournal.objects.filter(
                 substation=substation,
                 entry_is_valid=True,
-                important_event_date_start__isnull=False,
-                important_event_date_over__isnull=False,
-                important_event_date_over__gte=datetime.now() - timedelta(days=RETENTION_PERIOD_COMPLETED_RECORDS)
-            ).order_by('-important_event_date_start', '-id')
+                withdrawal_for_repair=True
+            ).filter(
+                Q(closing_entry__isnull=False) | Q(closing_entry__pub_date__lte=datetime.now() - timedelta(days=RETENTION_PERIOD_COMPLETED_RECORDS))
+            ).order_by('-closing_entry__pub_date', '-id')
             context['disabling_model_op_journal_data'] = disabling_records
+
+            worked_records = MainPageOPJournal.objects.filter(
+                substation=substation,
+                entry_is_valid=True,
+                permission_to_work=True
+            ).filter(
+                Q(closing_entry__isnull=False) | Q(closing_entry__pub_date__lte=datetime.now() - timedelta(days=RETENTION_PERIOD_COMPLETED_RECORDS))
+            ).order_by('-closing_entry__pub_date', '-id')
+            context['worked_model_op_journal_data'] = worked_records
         else:
             context['substation_name'] = None
 
@@ -224,33 +282,48 @@ class OpJournalView(ListView, FormView):
 
         context['RETENTION_PERIOD_COMPLETED_RECORDS'] = RETENTION_PERIOD_COMPLETED_RECORDS
         return context
-
-
+    
     def form_invalid(self, form):
         substation_slug = self.kwargs.get('substation_slug', None)
         if substation_slug:
             substation = Substation.objects.get(slug=substation_slug)
             form.fields['existing_entry'].queryset = MainPageOPJournal.objects.filter(
                 entry_is_valid=True,
-                important_event_date_start__isnull=False,
-                important_event_date_over__isnull=True,
+                withdrawal_for_repair=True,
+                closing_entry=None,
                 substation=substation
             )
+            form.fields['work_entry'].queryset = MainPageOPJournal.objects.filter(
+                entry_is_valid=True,
+                permission_to_work=True,
+                closing_entry=None,
+                substation=substation
+            )
+        # Добавляем код для повторного заполнения чекбокса important_event_checkbox
+        form.fields['important_event_checkbox'].initial = self.request.POST.get('important_event_checkbox', False)
         return self.render_to_response(self.get_context_data(form=form))
 
     def form_valid(self, form):
         user = self.request.user
         form.instance.user = user
         op_journal = form.save(commit=False)
-        if self.request.POST.get('important_event_checkbox'):
-            op_journal.important_event_date_start = op_journal.pub_date
+        important_event_checkbox = self.request.POST.get('important_event_checkbox', False)
+        if important_event_checkbox:
+            op_journal.withdrawal_for_repair = True
+        permission_to_work_checkbox = self.request.POST.get('permission_to_work_checkbox', False)
+        if permission_to_work_checkbox:
+            op_journal.permission_to_work = True
         op_journal.save()
         existing_entry_id = self.request.POST.get('existing_entry')
         if existing_entry_id:
             existing_entry = get_object_or_404(MainPageOPJournal, id=existing_entry_id)
-            existing_entry.important_event_date_over = op_journal.pub_date
             existing_entry.save()
-            op_journal.closing_entry.add(existing_entry)  # Добавляем связь между экземплярами
+            op_journal.closing_entry.add(existing_entry)
+        work_entry_id = self.request.POST.get('work_entry')
+        if work_entry_id:
+            work_entry = get_object_or_404(MainPageOPJournal, id=work_entry_id)
+            work_entry.save()
+            op_journal.closing_entry.add(work_entry)
         files = self.request.FILES.getlist('file')
         for file in files:
             file_instance = FileModelOPJ(main_page_op_journal=op_journal, file=file)
@@ -264,7 +337,28 @@ def autocomplete_view(request, substation_slug):
     substation = get_object_or_404(Substation, slug=substation_slug)
     query = request.GET.get('term', '')
     options = AutocompleteOption.objects.filter(substation=substation, text__icontains=query)
-    results = [option.text for option in options]
+    results = [{'label': option.text,
+                'value': option.text,
+                'out_of_work': option.out_of_work,
+                'getting_started': option.getting_started,
+                'disabling': option.disabling,
+                'enabling': option.enabling
+                } for option in options
+                ]
+    if substation.dispatch_point:
+        CHIO = ISSUANCE_OF_CONFIRMATION.format('ВЛ 220 кВ Кинельская - Просвет',
+                                               'ПС 220 кВ Кинельская',
+                                               'ПС 220 кВ Просвет',
+                                               '12-00 30.01.2024',
+                                               '4 часа')
+        ADDITIONAL_ENTRY_ONE ={'label': CHIO,
+                               'value': CHIO,
+                               'out_of_work': False,
+                               'getting_started': False,
+                               'disabling': False,
+                               'enabling': False
+                }
+        results.append(ADDITIONAL_ENTRY_ONE)
     return JsonResponse(results, safe=False)
 
 

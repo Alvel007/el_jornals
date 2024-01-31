@@ -69,8 +69,7 @@ class MainPageOPJournalAdmin(admin.ModelAdmin):
                     'special_regime_introduced',
                     'emergency_event', 'short_circuit',
                     'get_files',
-                    'important_event_date_start',
-                    'important_event_date_over',
+                    'planned_completion_date'
                     )
     list_display_links = ('id',
                           'short_text',
@@ -97,9 +96,7 @@ class MainPageOPJournalAdmin(admin.ModelAdmin):
                                                         'emergency_event',
                                                         'short_circuit')}),
         ('Комментарий АТП к записи', {'fields': ('comment',)}),
-        ('Запись вносит отклонение в нормальный режим Да/Нет', {'fields': ('important_event_date_start',
-                                                                           'important_event_date_over',
-                                                                           'closing_entry')}),
+        ('Запись вносит отклонение в нормальный режим Да/Нет', {'fields': ('withdrawal_for_repair', 'planned_completion_date', 'permission_to_work', 'closing_entry',)}),
         ('Прикрепленные файлы', {'fields': ('get_files',)})
     )
 
@@ -113,6 +110,10 @@ class MainPageOPJournalAdmin(admin.ModelAdmin):
     def pub_date_format(self, obj):
         return timezone.localtime(obj.pub_date).strftime("%Y-%m-%d %H:%M:%S")
     pub_date_format.short_description = 'Время выполнения действия'
+
+    def planned_completion_date_format(self, obj):
+        return timezone.localtime(obj.pub_date).strftime("%Y-%m-%d %H:%M:%S")
+    planned_completion_date_format.short_description = 'Планируемое время окончания работ'
 
     def short_text(self, obj):
         if len(obj.text) > 30:
@@ -144,9 +145,10 @@ class MainPageOPJournalAdmin(admin.ModelAdmin):
                                             'short_circuit',
                                             'user_signature',
                                             'get_files',
-                                            'important_event_date_start',
                                             'closing_entry',
-                                            'important_event_date_over'
+                                            'planned_completion_date',
+                                            'withdrawal_for_repair',
+                                            'permission_to_work'
                                             )
         return self.readonly_fields
 

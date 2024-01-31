@@ -14,6 +14,7 @@
           margin-top: 1em; 
       } 
     </style> 
+
     <div class="container"> 
       <h2>Запись внес {{ op_journal_entry.user }} в оперативный журнал {{ op_journal_entry.substation }}</h2> 
       <table class="table table-bordered border-primary"> 
@@ -100,13 +101,28 @@
           {% endif %} 
         </tbody> 
       </table> 
-      <form method="post"> 
-        {% csrf_token %} 
-        {{ form.as_p }}
+      <form method="post">
+        {% csrf_token %}
+        {% if op_journal_entry.withdrawal_for_repair %}
+        {% if not op_journal_entry.closing_entry.all %}
+        <div style="margin-bottom: 30px;">
+          <label for="id_planned_completion_date">Для выбранной записи продлить вывод из работы оборудования: </label>
+          {{ form.planned_completion_date }}
+          <div id="passwordHelp" class="form-text">Убедитесь в наличии существующей заявки на продление ремонта.</div>
+        </div>
+        {% endif %}
+        {% else %}
+         {{ form.planned_completion_date.as_hidden }}
+        {% endif %}
+        <div style="margin-bottom: 30px;">
+          <label for="id_entry_is_valid">Выбранная запись верна: </label>
+          {{ form.entry_is_valid }}
+          <div id="passwordHelp" class="form-text">Если убрать галку и сохранить, то запись будет ОШИБОЧНАЯ и пропадет из всех отклонений и ремонтов. Дальнейшее ее редактирование будет недоступно.</div>
+        </div>
         <button class="btn btn-primary" onclick="window.history.back()">Вернуться назад</button>
-        <button type="submit" class="btn btn-primary">Сохранить изменения</button> 
-      </form> 
-    </div> 
+        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+      </form>
+    </div>
   {% else %} 
     <h2 class="text-center">Отказано в доступе к записе номер {{ op_journal_entry.id }}.</h2>
     <h3 class="text-center">Если Вы считаете, что это ошибка, свяжитесь с администратором.</h3> 

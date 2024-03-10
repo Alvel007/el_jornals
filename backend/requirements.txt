@@ -1,0 +1,15 @@
+Django
+djangorestframework
+django-csvimport
+unidecode
+django-autocomplete-light
+django-widget-tweaks
+django-datetime-widget
+xhtml2pdf
+django-multiupload
+docx2pdf
+docxtpl
+python-docx
+PyPDF2
+psycopg2
+psycopg2-binary

@@ -52,6 +52,7 @@ jobs:
           push: true
           tags: alvel007/opjournals_backend:latest
 
+
   deploy:
     if: contains(fromJson('["refs/heads/master", "refs/heads/main"]'), github.ref)
     runs-on: ubuntu-latest

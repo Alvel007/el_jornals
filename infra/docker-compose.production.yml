@@ -10,31 +10,33 @@ services:
   db:
     container_name: postgre_db_prod
     image: postgres:latest 
-    env_file: ./.env 
+    env_file: .env 
     volumes: 
       - pg_data:/var/lib/postgresql/data 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U habrpguser -d db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
    
   backend: 
-    image: alvel007/foodgram_backend:latest 
-    env_file: ./.env 
+    image: alvel007/opjournals_backend:latest 
+    env_file: .env 
     depends_on: 
       - db 
     volumes: 
       - backend_static:/app/static
       - backend_media:/app/media
 
-  frontend: 
-    image: alvel007/foodgram_frontend:latest 
-    depends_on: 
-      - backend 
-    volumes: 
-      - static:/app/result_build/build 
-
   nginx: 
     image: nginx:latest 
-    env_file: ./.env 
-    depends_on: 
-      - frontend 
+    env_file: .env 
     ports: 
       - "8000:80" 
     volumes: 

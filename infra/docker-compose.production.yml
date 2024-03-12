@@ -12,18 +12,7 @@ services:
     image: postgres:latest 
     env_file: .env 
     volumes: 
-      - pg_data:/var/lib/postgresql/data 
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U habrpguser -d db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 4G
+      - pg_data:/var/lib/postgresql/data
    
   backend: 
     image: alvel007/opjournals_backend:latest 
@@ -38,7 +27,7 @@ services:
     image: nginx:latest 
     env_file: .env 
     ports: 
-      - "8080:80" 
+      - "8000:80"
     volumes: 
       - ./nginx.conf:/etc/nginx/conf.d/default.conf 
       - static:/usr/share/nginx/html/

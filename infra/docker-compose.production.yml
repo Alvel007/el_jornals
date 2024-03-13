@@ -17,7 +17,7 @@ services:
     image: alvel007/opjournals_backend:latest 
     env_file: .env 
     depends_on: 
-      - db 
+      - db
     volumes: 
       - static:/app/static
       - media:/app/media

@@ -20,8 +20,8 @@ services:
     depends_on: 
       - db 
     volumes: 
-      - backend_static:/static
-      - backend_media:/media
+      - backend_static:/app/static
+      - backend_media:/app/media
 
   nginx: 
     image: nginx:latest 

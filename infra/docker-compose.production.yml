@@ -30,7 +30,10 @@ services:
       - "8000:80"
     volumes: 
       - ./nginx.conf:/etc/nginx/conf.d/default.conf 
-      - /home/user/op_journals/static/:/static
       - static:/static
+      - /home/user/op_journals/static/css/:/static/css/
+      - /home/user/op_journals/static/js/:/static/js/
+      - /home/user/op_journals/static/img/:/static/img/
+      - /home/user/op_journals/static/fonts/:/static/fonts/
       - media:/media
       - ../docs/:/usr/share/nginx/html/api/docs/ks

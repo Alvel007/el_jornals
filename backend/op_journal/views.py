@@ -656,6 +656,7 @@ def export_records(request, substation_slug):
 
 
 def autofill_form_view(request, substation_slug):
+    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
     substation = Substation.objects.get(slug=substation_slug)
     if request.method == 'POST':
         print(request.POST)
@@ -666,7 +667,6 @@ def autofill_form_view(request, substation_slug):
             admitting = autofill_form.cleaned_data['admitting']
             cus_dispatcher = autofill_form.cleaned_data['cus_dispatcher']
             ending = autofill_form.cleaned_data['ending']
-            locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
             if AutofillDispModel.objects.filter(
                     cus_dispatcher=cus_dispatcher).exists():
                 autofill_instance = AutofillDispModel.objects.get(

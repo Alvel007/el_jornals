@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime, timedelta
+import locale
 
 import docx
 import docx2pdf
@@ -665,6 +666,7 @@ def autofill_form_view(request, substation_slug):
             admitting = autofill_form.cleaned_data['admitting']
             cus_dispatcher = autofill_form.cleaned_data['cus_dispatcher']
             ending = autofill_form.cleaned_data['ending']
+            locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
             if AutofillDispModel.objects.filter(
                     cus_dispatcher=cus_dispatcher).exists():
                 autofill_instance = AutofillDispModel.objects.get(
@@ -686,6 +688,7 @@ def autofill_form_view(request, substation_slug):
                         args=[substation.slug]
                         ))
             else:
+
                 new_autofill_instance = autofill_form.save(commit=False)
                 new_autofill_instance.name = name
                 new_autofill_instance.dispatcher = dispatcher

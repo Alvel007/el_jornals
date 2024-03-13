@@ -7,7 +7,7 @@ SECRET_KEY = 'django-insecure-hm%n!u0f==#$mddt(3p1%*hk#_8butdv80@gzsk3l419zr4p30
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.2.12']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.2.12',]
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
 ]
@@ -114,7 +114,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost',
-]
+    'http://192.168.2.12',
+    ]
 
 AUTH_USER_MODEL = "staff.CustomUser"
 

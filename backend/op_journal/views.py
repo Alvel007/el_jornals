@@ -559,7 +559,7 @@ def export_records(request, substation_slug):
 
         if record.emergency_event and not record.short_circuit:
             cell = row[0]
-            shading_elm = parse_xml(f'<w:shd {nsdecls("w")} w:fill="FF0000"/>')
+            shading_elm = parse_xml(f'<w: shd {nsdecls("w")} w: fill="FF0000"/>')
             cell._tc.get_or_add_tcPr().append(shading_elm)
             paragraph = row[0].paragraphs[0]
             run = paragraph.add_run(local_time.strftime('%d.%m.%Y\n%H:%M'))
@@ -569,7 +569,7 @@ def export_records(request, substation_slug):
             run.underline = WD_UNDERLINE.WAVY
         elif not record.emergency_event and record.short_circuit:
             cell = row[0]
-            shading_elm = parse_xml(f'<w:shd {nsdecls("w")} w:fill="0000FF"/>')
+            shading_elm = parse_xml(f'<w: shd {nsdecls("w")} w: fill="0000FF"/>')
             cell._tc.get_or_add_tcPr().append(shading_elm)
             paragraph = row[0].paragraphs[0]
             run = paragraph.add_run(local_time.strftime('%d.%m.%Y\n%H:%M'))
@@ -579,7 +579,7 @@ def export_records(request, substation_slug):
             run.underline = WD_UNDERLINE.WAVY
         elif record.emergency_event and record.short_circuit:
             cell = row[0]
-            shading_elm = parse_xml(f'<w:shd {nsdecls("w")} w:fill="ffff00"/>')
+            shading_elm = parse_xml(f'<w: shd {nsdecls("w")} w: fill="ffff00"/>')
             cell._tc.get_or_add_tcPr().append(shading_elm)
             paragraph = row[0].paragraphs[0]
             run = paragraph.add_run(local_time.strftime('%d.%m.%Y\n%H:%M'))

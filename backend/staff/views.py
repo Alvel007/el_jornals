@@ -1,11 +1,10 @@
-from django.views.generic import ListView
-from django.shortcuts import get_object_or_404
-from .models import CustomUser, Substation
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
-from django.shortcuts import render, redirect, reverse
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.forms import AuthenticationForm
+from django.views.generic import ListView
+
+from .models import CustomUser, Substation
+
 
 @method_decorator(login_required(login_url='/login/'), name='dispatch')
 class StaffListView(ListView):
@@ -20,8 +19,10 @@ class StaffListView(ListView):
             return CustomUser.objects.filter(is_public=True).order_by('-id')
         substation = get_object_or_404(Substation, slug=slug)
         operational_staff = substation.operational_staff.filter(is_public=True)
-        administrative_staff = substation.administrative_staff.filter(is_public=True)
-        return (operational_staff | administrative_staff).distinct().order_by('administrative_staff', '-id')
+        administrative_staff = substation.administrative_staff.filter(
+            is_public=True)
+        return (operational_staff | administrative_staff).distinct().order_by(
+            'administrative_staff', '-id')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -29,8 +30,14 @@ class StaffListView(ListView):
         if slug:
             substation = get_object_or_404(Substation, slug=slug)
             context['substation'] = substation
-            context['operational_staff'] = substation.operational_staff.filter(id__in=self.get_queryset().values('id'))
-            context['administrative_staff'] = substation.administrative_staff.filter(id__in=self.get_queryset().values('id'))
+            context['operational_staff'] = substation.operational_staff.filter(
+                id__in=self.get_queryset().values('id'))
+            context['administrative_staff'] = (substation.
+                                               administrative_staff.
+                                               filter(
+                                                   id__in=(self.
+                                                           get_queryset().
+                                                           values('id'))))
             context['head'] = f'Информация о персонале {substation.name}'
             context['slug'] = True
         else:

@@ -1,7 +1,7 @@
-from django.shortcuts import render, redirect, reverse
 from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import redirect, render, reverse
+
 from .forms import CustomAuthenticationForm
-from django.http import HttpResponse
 
 
 def login_view(request):

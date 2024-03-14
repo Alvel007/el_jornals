@@ -1,11 +1,11 @@
 import json
+import locale
 import os
 from datetime import datetime, timedelta
-import locale
 
 import docx
 import docx2pdf
-"""import pythoncom"""
+import pythoncom
 import pytz
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import EmptyPage, Paginator
@@ -21,15 +21,15 @@ from docx.enum.text import WD_UNDERLINE
 from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls
 from docx.shared import RGBColor
-
 from el_journals.settings import (NUMBER_ENTRIES_OP_LOG_PAGE,
                                   RETENTION_PERIOD_COMPLETED_RECORDS,
                                   SIGNAL_ON_REQUEST, TOTAL_VISIBLE_RECORDS_OPJ)
+from op_journal.models import (AutocompleteOption, AutofillDispModel,
+                               FileModelOPJ, MainPageOPJournal)
 from powerline.forms import PowerLineForm
 from powerline.models import AdmittingStaff, PowerLine, ThirdPartyDispatchers
 from substation.models import Substation
-from op_journal.models import (AutocompleteOption, AutofillDispModel,
-                               FileModelOPJ, MainPageOPJournal)
+
 from .forms import (AutofillDispForm, CommentOPJForm, MainPageOPJournalForm,
                     OPJournalForm)
 
@@ -48,7 +48,7 @@ def op_journal_edit(request, pk):
     op_journal_entry = get_object_or_404(MainPageOPJournal, pk=pk)
     user_has_operational_staff = request.user.operational_staff.filter(
         id=op_journal_entry.substation.id
-        ).exists()
+    ).exists()
     if user_has_operational_staff:
         if op_journal_entry.entry_is_valid:
             if request.method == "POST":
@@ -78,8 +78,7 @@ def op_journal_edit(request, pk):
             return render(
                 request,
                 'op_journal/op_journal_edit.html',
-                {'op_journal_entry': op_journal_entry, 'form': form}
-                )
+                {'op_journal_entry': op_journal_entry, 'form': form})
         else:
             return redirect('op_journal_detail', pk=pk)
     else:
@@ -92,8 +91,7 @@ class OpJournalView(ListView, FormView):
     context_object_name = 'model_op_journal_data'
     paginate_by = NUMBER_ENTRIES_OP_LOG_PAGE
     extra_context = {
-        'title': 'Инструкция по ведению электронного оперативного журнала'
-        }
+        'title': 'Инструкция по ведению электронного оперативного журнала'}
     form_class = MainPageOPJournalForm
     comment_form_class = CommentOPJForm
     form_VL = PowerLineForm
@@ -103,8 +101,7 @@ class OpJournalView(ListView, FormView):
         substation_slug = self.kwargs.get('substation_slug')
         if not substation_slug:
             return self.render_to_response(
-                {'template': 'op_journal/manual.html'}
-                )
+                {'template': 'op_journal/manual.html'})
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -134,8 +131,7 @@ class OpJournalView(ListView, FormView):
                 or substation in self.request.user.administrative_staff.all() \
                 or substation in self.request.user.operational_staff.all():
             queryset = MainPageOPJournal.objects.filter(
-                substation__slug=substation_slug
-                )
+                substation__slug=substation_slug)
             if query:
                 queryset = queryset.filter(text__icontains=query)
             if start_date and end_date:
@@ -152,8 +148,7 @@ class OpJournalView(ListView, FormView):
                         end_date, timezone.datetime.max.time()))
                 queryset = queryset.filter(Q(
                     pub_date__gte=start_date,
-                    pub_date__lte=end_date)
-                    )
+                    pub_date__lte=end_date))
             queryset = queryset.order_by(
                 '-pub_date', '-id')[:TOTAL_VISIBLE_RECORDS_OPJ]
         else:
@@ -176,10 +171,11 @@ class OpJournalView(ListView, FormView):
                 context['title'] = "Оперативный журнал"
                 context['substation_name'] = substation.name
             if substation in self.request.user.operational_staff.all():
-                form = kwargs.get('form', MainPageOPJournalForm(
-                    initial={'substation': substation},
-                    substation_slug=substation_slug)
-                    )
+                form = kwargs.get(
+                    'form',
+                    MainPageOPJournalForm(initial={
+                        'substation': substation},
+                        substation_slug=substation_slug))
                 context['form'] = form
                 context['has_permission'] = (substation in self.request.user
                                              .operational_staff.all())
@@ -188,17 +184,14 @@ class OpJournalView(ListView, FormView):
                 context['comment_form'] = comment_form
             if substation.dispatch_point:
                 autofill_disp_queryset = PowerLine.objects.filter(
-                    for_CUS_dispatcher=substation
-                    )
+                    for_CUS_dispatcher=substation)
                 autofill_form = AutofillDispForm(
                     initial={'name': autofill_disp_queryset.values_list(
                         'name', flat=True)},
-                    autofill_disp_queryset=autofill_disp_queryset
-                    )
+                    autofill_disp_queryset=autofill_disp_queryset)
                 context['autofill_form'] = autofill_form
                 disp_autofill = AutofillDispModel.objects.filter(
-                    cus_dispatcher=substation
-                    )
+                    cus_dispatcher=substation)
                 context['disp_autofill'] = disp_autofill
                 print(disp_autofill)
 
@@ -207,21 +200,17 @@ class OpJournalView(ListView, FormView):
                     dispatch_company = power_line.disp_manage
                     if dispatch_company:
                         dispatchers = ThirdPartyDispatchers.objects.filter(
-                            disp_center=dispatch_company
-                            )
+                            disp_center=dispatch_company)
                         dispatchers_names = [
                             dispatcher.disp_name for dispatcher in dispatchers]
                     else:
                         dispatchers_names = []
                     admitting_pers = AdmittingStaff.objects.filter(
-                        for_CUS_dispatcher=substation
-                        )
+                        for_CUS_dispatcher=substation)
                     admitting_names = [
-                        admitting.name for admitting in admitting_pers
-                        ]
+                        admitting.name for admitting in admitting_pers]
                     endings = [
-                        ending.name for ending in power_line.ending.all()
-                        ]
+                        ending.name for ending in power_line.ending.all()]
                     data_vl.append({'id': power_line.id,
                                     'name': power_line.name,
                                     'dispatchers': dispatchers_names,
@@ -247,8 +236,7 @@ class OpJournalView(ListView, FormView):
                     time_difference = record.planned_completion_date - now
                     record.is_close_to_completion = (
                         (time_difference
-                         .total_seconds()) < SIGNAL_ON_REQUEST * 3600
-                        )
+                         .total_seconds()) < SIGNAL_ON_REQUEST * 3600)
                     record.is_past_due = time_difference.total_seconds() < 0
                 context['records_by_substation'] = records_by_substation
                 disp_work_records = MainPageOPJournal.objects.filter(
@@ -279,10 +267,10 @@ class OpJournalView(ListView, FormView):
                     if completed_records.exists():
                         completed_records_by_substation[
                             dispatcher.name
-                            ] = completed_records
+                        ] = completed_records
                 context[
                     'completed_records_by_substation'
-                    ] = completed_records_by_substation
+                ] = completed_records_by_substation
 
                 compl_worked_records_by_substation = {}
                 for dispatcher in substation.dispatcher_for.all():
@@ -298,10 +286,10 @@ class OpJournalView(ListView, FormView):
                     if compl_worked_records.exists():
                         compl_worked_records_by_substation[
                             dispatcher.name
-                            ] = compl_worked_records
+                        ] = compl_worked_records
                 context[
                     'compl_worked_records_by_substation'
-                    ] = compl_worked_records_by_substation
+                ] = compl_worked_records_by_substation
 
             filter_autocomplite = AutocompleteOption.objects.filter(
                 substation=substation)
@@ -364,7 +352,7 @@ class OpJournalView(ListView, FormView):
 
         context[
             'RETENTION_PERIOD_COMPLETED_RECORDS'
-            ] = RETENTION_PERIOD_COMPLETED_RECORDS
+        ] = RETENTION_PERIOD_COMPLETED_RECORDS
         return context
 
     def form_invalid(self, form):
@@ -373,26 +361,23 @@ class OpJournalView(ListView, FormView):
             substation = Substation.objects.get(slug=substation_slug)
             form.fields[
                 'existing_entry'
-                ].queryset = MainPageOPJournal.objects.filter(
-                    entry_is_valid=True,
-                    withdrawal_for_repair=True,
-                    closing_entry=None,
-                    substation=substation
-                )
+            ].queryset = MainPageOPJournal.objects.filter(
+                entry_is_valid=True,
+                withdrawal_for_repair=True,
+                closing_entry=None,
+                substation=substation)
             form.fields[
                 'work_entry'
-                ].queryset = MainPageOPJournal.objects.filter(
-                    entry_is_valid=True,
-                    permission_to_work=True,
-                    closing_entry=None,
-                    substation=substation
-                )
+            ].queryset = MainPageOPJournal.objects.filter(
+                entry_is_valid=True,
+                permission_to_work=True,
+                closing_entry=None,
+                substation=substation)
         form.fields[
             'important_event_checkbox'
-            ].initial = self.request.POST.get(
-                'important_event_checkbox',
-                False
-                )
+        ].initial = self.request.POST.get(
+            'important_event_checkbox',
+            False)
         return self.render_to_response(self.get_context_data(form=form))
 
     def form_valid(self, form):
@@ -401,14 +386,12 @@ class OpJournalView(ListView, FormView):
         op_journal = form.save(commit=False)
         important_event_checkbox = self.request.POST.get(
             'important_event_checkbox',
-            False
-            )
+            False)
         if important_event_checkbox:
             op_journal.withdrawal_for_repair = True
         permission_to_work_checkbox = self.request.POST.get(
             'permission_to_work_checkbox',
-            False
-            )
+            False)
         if permission_to_work_checkbox:
             op_journal.permission_to_work = True
         op_journal.save()
@@ -416,32 +399,28 @@ class OpJournalView(ListView, FormView):
         if existing_entry_id:
             existing_entry = get_object_or_404(
                 MainPageOPJournal,
-                id=existing_entry_id
-                )
+                id=existing_entry_id)
             existing_entry.save()
             op_journal.closing_entry.add(existing_entry)
         work_entry_id = self.request.POST.get('work_entry')
         if work_entry_id:
             work_entry = get_object_or_404(
                 MainPageOPJournal,
-                id=work_entry_id
-                )
+                id=work_entry_id)
             work_entry.save()
             op_journal.closing_entry.add(work_entry)
         files = self.request.FILES.getlist('file')
         for file in files:
             file_instance = FileModelOPJ(
                 main_page_op_journal=op_journal,
-                file=file
-                )
+                file=file)
             file_instance.save()
         form.save_m2m()
         form.save()
         return HttpResponseRedirect(
             reverse(
                 'sub_op_journal',
-                args=[form.instance.substation.slug]
-                ))
+                args=[form.instance.substation.slug]))
 
 
 @login_required(login_url='/login/')
@@ -450,8 +429,7 @@ def autocomplete_view(request, substation_slug):
     query = request.GET.get('term', '')
     options = AutocompleteOption.objects.filter(
         substation=substation,
-        text__icontains=query
-        )
+        text__icontains=query)
     results = [{'label': option.label,
                 'value': option.text,
                 'out_of_work': option.out_of_work,
@@ -550,8 +528,7 @@ def add_comment(request, post_id):
 
 @login_required(login_url='/login/')
 def export_records(request, substation_slug):
-    pass
-"""    start_date_str = request.POST.get('start_date')
+    start_date_str = request.POST.get('start_date')
     end_date_str = request.POST.get('end_date')
     start_date = timezone.make_aware(
         datetime.strptime(start_date_str, '%Y-%m-%d'))
@@ -573,8 +550,7 @@ def export_records(request, substation_slug):
                 if 'PLACEHOLDER_FOR_SUBSTATION_NAME' in run.text:
                     run.text = run.text.replace(
                         'PLACEHOLDER_FOR_SUBSTATION_NAME',
-                        substation_name
-                        )
+                        substation_name)
             break
     table = template.tables[0]
     for record in queryset:
@@ -649,10 +625,10 @@ def export_records(request, substation_slug):
     response = HttpResponse(content_type='application/pdf')
     response[
         'Content-Disposition'
-        ] = 'attachment; filename=exported_records.pdf'
+    ] = 'attachment; filename=exported_records.pdf'
     response.write(pdf_content)
 
-    return response"""
+    return response
 
 
 def autofill_form_view(request, substation_slug):
@@ -670,8 +646,7 @@ def autofill_form_view(request, substation_slug):
             if AutofillDispModel.objects.filter(
                     cus_dispatcher=cus_dispatcher).exists():
                 autofill_instance = AutofillDispModel.objects.get(
-                    cus_dispatcher=cus_dispatcher
-                    )
+                    cus_dispatcher=cus_dispatcher)
                 autofill_instance.name = name
                 autofill_instance.dispatcher = dispatcher
                 autofill_instance.admitting = admitting
@@ -685,8 +660,7 @@ def autofill_form_view(request, substation_slug):
                 return HttpResponseRedirect(
                     reverse(
                         'sub_op_journal',
-                        args=[substation.slug]
-                        ))
+                        args=[substation.slug]))
             else:
 
                 new_autofill_instance = autofill_form.save(commit=False)
@@ -699,12 +673,10 @@ def autofill_form_view(request, substation_slug):
                 return HttpResponseRedirect(
                     reverse(
                         'sub_op_journal',
-                        args=[substation.slug]
-                        ))
+                        args=[substation.slug]))
         else:
             print("Ошибка валидации")
     return HttpResponseRedirect(
         reverse(
             'sub_op_journal',
-            args=[substation.slug]
-            ))
+            args=[substation.slug]))

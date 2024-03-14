@@ -4,7 +4,6 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.shortcuts import reverse
 from django.utils import timezone
-
 from el_journals.settings import (FILE_UPLOAD_MAX_MEMORY_SIZE,
                                   REVERSE_EDITING_PERIOD)
 from multiupload.fields import MultiFileField
@@ -12,7 +11,6 @@ from powerline.models import AdmittingStaff, PowerLine, ThirdPartyDispatchers
 from substation.models import Substation
 
 from .models import AutofillDispModel, MainPageOPJournal, СommentOPJ
-
 
 CustomUser = get_user_model()
 
@@ -108,12 +106,12 @@ class MainPageOPJournalForm(forms.ModelForm):
                                         'не может быть '
                                         'больше текущей!')
         if time_difference.total_seconds() > REVERSE_EDITING_PERIOD * 3600:
-            if (REVERSE_EDITING_PERIOD % 10 == 1 and
-               REVERSE_EDITING_PERIOD != 11):
+            if (REVERSE_EDITING_PERIOD % 10 == 1
+                    and REVERSE_EDITING_PERIOD != 11):
                 hour = 'час'
-            elif 2 <= REVERSE_EDITING_PERIOD % 10 <= 4 and (
-                      REVERSE_EDITING_PERIOD < 10 or
-                      REVERSE_EDITING_PERIOD > 20):
+            elif (2 <= REVERSE_EDITING_PERIOD % 10 <= 4
+                    and REVERSE_EDITING_PERIOD < 10
+                    or REVERSE_EDITING_PERIOD > 20):
                 hour = 'часа'
             else:
                 hour = 'часов'
@@ -130,8 +128,8 @@ class MainPageOPJournalForm(forms.ModelForm):
             'planned_completion_date')
 
         if important_event_checkbox:
-            if (planned_completion_date and
-                    planned_completion_date) <= timezone.now():
+            if (planned_completion_date
+                    and planned_completion_date) <= timezone.now():
                 raise forms.ValidationError('Планируемая дата '
                                             'ввода в работу оборудования '
                                             'должна быть в будущем.')
@@ -212,9 +210,10 @@ class OPJournalForm(forms.ModelForm):
             else None)
 
         if withdrawal_for_repair and not closing_entry:
-            if (planned_completion_date and
-                initial_planned_completion_date and
-                    planned_completion_date < initial_planned_completion_date):
+            if (planned_completion_date
+                    and initial_planned_completion_date
+                    and (planned_completion_date
+                         < initial_planned_completion_date)):
                 raise forms.ValidationError('Дата продления не может быть '
                                             'меньше, указанной ранее, при '
                                             'выводе оборудования из работы!')

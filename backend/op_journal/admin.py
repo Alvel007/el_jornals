@@ -1,13 +1,13 @@
 from django.contrib import admin
+from django.contrib.auth.models import Group
+from django.template.defaultfilters import truncatechars
 from django.utils import timezone
 from django.utils.html import format_html
-from django.template.defaultfilters import truncatechars
-from django.contrib.auth.models import Group
+from el_journals.settings import (MAX_ATTACHED_FILES,
+                                  NUMBER_ENTRIES_OP_LOG_PAGE, SUPER_ADMIN)
 
-from .models import (MainPageOPJournal, AutocompleteOption,
-                     СommentOPJ, FileModelOPJ, AutofillDispModel)
-from el_journals.settings import (NUMBER_ENTRIES_OP_LOG_PAGE,
-                                  SUPER_ADMIN, MAX_ATTACHED_FILES)
+from .models import (AutocompleteOption, AutofillDispModel, FileModelOPJ,
+                     MainPageOPJournal, СommentOPJ)
 
 
 class FileModelOPJInline(admin.TabularInline):
@@ -30,7 +30,7 @@ class SubstationFilter(admin.SimpleListFilter):
         substation_values = MainPageOPJournal.objects.values_list(
             'substation__name',
             flat=True
-            ).distinct()
+        ).distinct()
         return [(substation, substation) for substation in substation_values]
 
     def queryset(self, request, queryset):
@@ -181,7 +181,7 @@ class MainPageOPJournalAdmin(admin.ModelAdmin):
                 'planned_completion_date',
                 'withdrawal_for_repair',
                 'permission_to_work'
-                )
+            )
         return self.readonly_fields
 
 

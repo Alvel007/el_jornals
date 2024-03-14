@@ -1,5 +1,8 @@
 from django.contrib import admin
-from .models import PowerLine, AdmittingStaff, DispatchCompanies, ThirdPartyDispatchers
+
+from .models import (AdmittingStaff, DispatchCompanies, PowerLine,
+                     ThirdPartyDispatchers)
+
 
 class DispatchCompaniesAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'abbreviated_name')
@@ -10,8 +13,9 @@ class ThirdPartyDispatchersAdmin(admin.ModelAdmin):
     list_display = ('disp_name',)
     search_fields = ('disp_name',)
 
+
 class PowerLineAdmin(admin.ModelAdmin):
-    list_display = ('name', 'voltage','induced_voltage')
+    list_display = ('name', 'voltage', 'induced_voltage')
     list_filter = ('voltage', 'induced_voltage')
     search_fields = ('name', 'voltage')
     filter_horizontal = ('for_CUS_dispatcher', 'ending')

@@ -55,7 +55,7 @@ class СommentOPJAdmin(admin.ModelAdmin):
                      'mainpageopjournal__text',)
     list_filter = (SubstationFilter,
                    'user')
-    list_per_page = NUMBER_ENTRIES_OP_LOG_PAGE
+    list_per_page = int(NUMBER_ENTRIES_OP_LOG_PAGE)
 
     def mainpageopjournal(self, obj):
         comment_text = (
@@ -105,7 +105,7 @@ class MainPageOPJournalAdmin(admin.ModelAdmin):
                    'special_regime_introduced',
                    'emergency_event',
                    )
-    list_per_page = NUMBER_ENTRIES_OP_LOG_PAGE
+    list_per_page = int(NUMBER_ENTRIES_OP_LOG_PAGE)
 
     fieldsets = (
         ('Основная информация', {'fields': ('substation',
@@ -190,7 +190,7 @@ class AutocompleteOptionAdmin(admin.ModelAdmin):
                     'text',
                     'get_substations')
     search_fields = ('text',)
-    list_per_page = NUMBER_ENTRIES_OP_LOG_PAGE
+    list_per_page = int(NUMBER_ENTRIES_OP_LOG_PAGE)
     list_display_links = ('text',)
     filter_horizontal = ('substation',)
 

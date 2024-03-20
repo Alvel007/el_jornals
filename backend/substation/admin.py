@@ -7,7 +7,7 @@ from .models import GroupSubstation, Substation
 
 
 class GroupSubstationAdminForm(forms.ModelForm):
-    list_per_page = NUMBER_ENTRIES_OP_LOG_PAGE
+    list_per_page = int(NUMBER_ENTRIES_OP_LOG_PAGE)
 
     class Meta:
         model = GroupSubstation
@@ -21,7 +21,7 @@ class GroupSubstationAdmin(admin.ModelAdmin):
         'name',
         'get_include_substations',
         'slug',)
-    list_per_page = NUMBER_ENTRIES_OP_LOG_PAGE
+    list_per_page = int(NUMBER_ENTRIES_OP_LOG_PAGE)
     list_display_links = (
         'name',)
 

@@ -1,9 +1,10 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from views import (OpJournalView, add_comment, autocomplete_view,
-                   autofill_form_view, export_records, op_journal_detail,
-                   op_journal_edit)
+
+from .views import (OpJournalView, add_comment, autocomplete_view,
+                    autofill_form_view, export_records, op_journal_detail,
+                    op_journal_edit)
 
 urlpatterns = [
     path('', OpJournalView.as_view(), name='op_manual'),

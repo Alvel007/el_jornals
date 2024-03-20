@@ -1,3 +1,4 @@
+import ast
 import os
 from pathlib import Path
 
@@ -14,7 +15,11 @@ DEBUG = os.getenv('DEBUG', default=False)
 
 ALLOWED_HOSTS = ['127.0.0.1',
                  'localhost',
-                 os.getenv('HOST_IP'),]
+                 os.getenv('HOST_IP'),
+                 os.getenv('HOST_NAME'),
+                 # если пробрасываете порты в локальной сети то укажите их в след. строках
+                 '192.168.28.228',
+                 ]
 
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
@@ -27,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'widget_tweaks',
     'staff.apps.StaffConfig',
     'op_journal.apps.OpJournalConfig',
@@ -41,7 +47,6 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'substation.middleware.AuthMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -69,24 +74,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'el_journals.wsgi.application'
 
-# Отладочная БД sqlite3
-"""DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}"""
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'django',
-        'USER': 'django_user',
-        'PASSWORD': 'django_password',
-        'HOST': 'db',
-        'PORT': 5432,
+# если дебаг включен, то разворачивается бд в sqlite, если не включен - postgres
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'django',
+            'USER': 'django_user',
+            'PASSWORD': 'django_password',
+            'HOST': 'db',
+            'PORT': 5432,
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -112,45 +119,47 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+# если дебаг включен, то указываем размещение статики,
+# если нет - точку сбора статики в корневой папке
+if DEBUG:
+    STATICFILES_DIRS = [
+        os.path.join(BASE_DIR, 'static'),
+    ]
+else:
+    STATIC_ROOT = [
+        os.path.join(BASE_DIR, 'static'),
+    ]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost',
-    f'http://{os.getenv("HOST_IP")}',
-]
-
 AUTH_USER_MODEL = "staff.CustomUser"
 
 # Далее настройки электронного журнала, все описания переменных в env-файле
-NAME_MAX_LENGTH = os.getenv('NAME_MAX_LENGTH', default=64)
-DEFAULT_PERSONAL_POSITION = os.getenv(
-    'DEFAULT_PERSONAL_POSITION',
-    default=[('Системный администратор', 'Системный администратор'),])
-HEAD_SUBSTATION_GROUP = os.getenv(
-    'HEAD_SUBSTATION_GROUP',
-    default=('Системный администратор',))
-NUMBER_ENTRIES_OP_LOG_PAGE = os.getenv('NUMBER_ENTRIES_OP_LOG_PAGE', default=30)
-TOTAL_VISIBLE_RECORDS_OPJ = os.getenv('TOTAL_VISIBLE_RECORDS_OPJ', default=1000)
-REVERSE_EDITING_PERIOD = os.getenv('REVERSE_EDITING_PERIOD', default=5)
-MAX_FILE_SIZE = os.getenv('MAX_FILE_SIZE', default=5)
+NAME_MAX_LENGTH = int(os.getenv('NAME_MAX_LENGTH', default=64))
+default_personal_position_str = os.getenv('DEFAULT_PERSONAL_POSITION', default="[('Системный администратор', 'Системный администратор'),]")
+DEFAULT_PERSONAL_POSITION = ast.literal_eval(default_personal_position_str)
+NUMBER_ENTRIES_OP_LOG_PAGE = int(os.getenv('NUMBER_ENTRIES_OP_LOG_PAGE', default=30))
+TOTAL_VISIBLE_RECORDS_OPJ = int(os.getenv('TOTAL_VISIBLE_RECORDS_OPJ', default=1000))
+REVERSE_EDITING_PERIOD = float(os.getenv('REVERSE_EDITING_PERIOD', default=5))
+MAX_FILE_SIZE = int(os.getenv('MAX_FILE_SIZE', default=5))
 FILE_UPLOAD_MAX_MEMORY_SIZE = MAX_FILE_SIZE * 1024 * 1024
-MAX_ATTACHED_FILES = os.getenv('MAX_ATTACHED_FILES', default=5)
-RETENTION_PERIOD_COMPLETED_RECORDS = os.getenv(
+MAX_ATTACHED_FILES = int(os.getenv('MAX_ATTACHED_FILES', default=5))
+RETENTION_PERIOD_COMPLETED_RECORDS = int(os.getenv(
     'RETENTION_PERIOD_COMPLETED_RECORDS',
-    default=10)
-VOLTAGE_CHOICES = os.getenv('VOLTAGE_CHOICES', default=(('220', '220'),))
-SIGNAL_ON_REQUEST = os.getenv('SIGNAL_ON_REQUEST', default=48)
-ISSUANCE_OF_CONFIRMATION = os.getenv('ISSUANCE_OF_CONFIRMATION', default='Не задано')
-PREPARATION_AND_ADMISSION = os.getenv('PREPARATION_AND_ADMISSION', default='Не задано')
-PRM_ONLY = os.getenv('PRM_ONLY', default='Не задано')
-ADMISSION_ONLY = os.getenv('ADMISSION_ONLY', default='Не задано')
-WITHOUT_TRIPPING = os.getenv('WITHOUT_TRIPPING', default='Не задано')
-AT_SUBSTATION = os.getenv('AT_SUBSTATION', default='Не задано')
-END_WORK = os.getenv('END_WORK', default='Не задано')
-SUBMIT_VL = os.getenv('SUBMIT_VL', default='Не задано')
+    default=10))
+voltage_choices_str = os.getenv('VOLTAGE_CHOICES', default="(('220', '220'),)")
+VOLTAGE_CHOICES = ast.literal_eval(voltage_choices_str)
+SIGNAL_ON_REQUEST = int(os.getenv('SIGNAL_ON_REQUEST', default=48))
+ISSUANCE_OF_CONFIRMATION = str(os.getenv('ISSUANCE_OF_CONFIRMATION', default='Не задано'))
+PREPARATION_AND_ADMISSION = str(os.getenv('PREPARATION_AND_ADMISSION', default='Не задано'))
+PRM_ONLY = str(os.getenv('PRM_ONLY', default='Не задано'))
+ADMISSION_ONLY = str(os.getenv('ADMISSION_ONLY', default='Не задано'))
+WITHOUT_TRIPPING = str(os.getenv('WITHOUT_TRIPPING', default='Не задано'))
+AT_SUBSTATION = str(os.getenv('AT_SUBSTATION', default='Не задано'))
+END_WORK = str(os.getenv('END_WORK', default='Не задано'))
+SUBMIT_VL = str(os.getenv('SUBMIT_VL', default='Не задано'))
 SUPER_ADMIN = os.getenv('SUPER_ADMIN', default=False)

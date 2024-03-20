@@ -82,7 +82,7 @@ class CustomUserAdmin(BaseUserAdmin):
                 'is_public',),
         }),
     )
-    list_per_page = NUMBER_ENTRIES_OP_LOG_PAGE
+    list_per_page = int(NUMBER_ENTRIES_OP_LOG_PAGE)
 
     def get_operational_staff(self, obj):
         return (", ".join([substation.name

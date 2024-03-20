@@ -8,10 +8,10 @@ from .views import login_view, logout_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('staff/', include('staff.urls')),
     path('op_journal/', include('op_journal.urls')),
+    path('login/', login_view, name='login'),
     path('', RedirectView.as_view(url='op_journal/')),
 ]
 

@@ -236,7 +236,7 @@ class OpJournalView(ListView, FormView):
                     time_difference = record.planned_completion_date - now
                     record.is_close_to_completion = (
                         (time_difference
-                         .total_seconds()) < SIGNAL_ON_REQUEST * 3600)
+                         .total_seconds()) < float(SIGNAL_ON_REQUEST) * 3600)
                     record.is_past_due = time_difference.total_seconds() < 0
                 context['records_by_substation'] = records_by_substation
                 disp_work_records = MainPageOPJournal.objects.filter(

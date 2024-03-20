@@ -18,7 +18,7 @@ ALLOWED_HOSTS = ['127.0.0.1',
                  os.getenv('HOST_IP'),
                  os.getenv('HOST_NAME'),
                  # если пробрасываете порты в локальной сети то укажите их в след. строках
-                 '192.168.28.228',
+                 #'192.168.28.228',
                  ]
 
 PASSWORD_HASHERS = [
@@ -127,9 +127,7 @@ if DEBUG:
         os.path.join(BASE_DIR, 'static'),
     ]
 else:
-    STATIC_ROOT = [
-        os.path.join(BASE_DIR, 'static'),
-    ]
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 import docx
 import docx2pdf
-import pythoncom
+#import pythoncom
 import pytz
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import EmptyPage, Paginator
@@ -528,7 +528,8 @@ def add_comment(request, post_id):
 
 @login_required(login_url='/login/')
 def export_records(request, substation_slug):
-    start_date_str = request.POST.get('start_date')
+    pass
+"""    start_date_str = request.POST.get('start_date')
     end_date_str = request.POST.get('end_date')
     start_date = timezone.make_aware(
         datetime.strptime(start_date_str, '%Y-%m-%d'))
@@ -628,7 +629,7 @@ def export_records(request, substation_slug):
     ] = 'attachment; filename=exported_records.pdf'
     response.write(pdf_content)
 
-    return response
+    return response"""
 
 
 def autofill_form_view(request, substation_slug):

@@ -136,6 +136,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "staff.CustomUser"
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost',
+    f'http://{os.getenv("HOST_IP")}',
+    f'http://{os.getenv("HOST_NAME")}',
+]
+
 # Далее настройки электронного журнала, все описания переменных в env-файле
 NAME_MAX_LENGTH = int(os.getenv('NAME_MAX_LENGTH', default=64))
 default_personal_position_str = os.getenv('DEFAULT_PERSONAL_POSITION', default="[('Системный администратор', 'Системный администратор'),]")
